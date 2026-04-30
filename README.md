@@ -2,7 +2,7 @@
 
 A growing collection of browser games — no install, no account, just open and play.
 
-Live at: https://georgiand.github.io/snake_game (GitHub Pages)
+Live at: https://georgiand.github.io/browser-games/ (GitHub Pages)
 
 ---
 
