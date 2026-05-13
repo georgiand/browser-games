@@ -21,15 +21,56 @@ A fully-featured Snake game built with HTML5 Canvas and Vanilla JavaScript.
 - **Pause/Resume:** Space bar, with blur overlay
 - **Mobile:** Swipe controls on canvas
 
+### ❌ Tic Tac Toe
+**Path:** `games/tic-tac-toe/index.html`
+
+Classic tic tac toe against an AI opponent.
+
+- **AI difficulty:** Easy, Medium, Hard
+- **Easy:** Random legal moves
+- **Medium:** Tactical wins/blocks plus centre/corner preference
+- **Hard:** Minimax optimal play
+- **Scoreboard:** Tracks wins, losses, and draws during the session
+
+### 🔴 4 in a Row
+**Path:** `games/four-in-a-row/index.html`
+
+Connect-four style strategy game with gravity-based disc drops.
+
+- **AI difficulty:** Easy, Medium, Hard
+- **Easy:** Random legal columns
+- **Medium:** Immediate wins, blocks, and centre-column preference
+- **Hard:** Alpha-beta minimax with positional evaluation
+- **Responsive:** Playable on desktop and mobile-sized screens
+
+### ⚫ Reversi
+**Path:** `games/reversi/index.html`
+
+Reversi/Othello-style disc-flipping strategy game.
+
+- **AI difficulty:** Easy, Medium, Hard
+- **Easy:** Random legal moves
+- **Medium:** Corner preference and greedy flips
+- **Hard:** Minimax with mobility, corner, and positional weighting
+- **Rules support:** Legal-move hints, passes, and end-game scoring
+
 ---
 
 ## Structure
 
 ```
-index.html              ← Games portal (main landing page)
+index.html                    ← Games portal (main landing page)
 games/
+  shared/
+    strategy.css              ← Shared styling for board strategy games
   snake/
-    index.html          ← Snake game
+    index.html                ← Snake game
+  tic-tac-toe/
+    index.html                ← Tic Tac Toe
+  four-in-a-row/
+    index.html                ← 4 in a Row
+  reversi/
+    index.html                ← Reversi
 README.md
 ```
 
@@ -37,6 +78,7 @@ Adding a new game:
 1. Create `games/<name>/index.html`
 2. Add a card to the portal `index.html` games grid
 3. Increment the section count badge
+4. Update this README
 
 ---
 

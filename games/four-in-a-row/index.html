@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4 in a Row — TopSOUL Games</title>
+  <link rel="stylesheet" href="../shared/strategy.css">
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar"><a class="back" href="../../index.html">← Games</a><span class="pill">You are red · AI is yellow</span></div>
+    <section class="card">
+      <div class="layout">
+        <div>
+          <h1>4 in a Row</h1>
+          <p class="subtitle">Gravity, tactics, and seven columns of mild betrayal.</p>
+          <div class="board-wrap"><div id="board" class="board connect" aria-label="4 in a Row board"></div></div>
+        </div>
+        <aside class="panel">
+          <div class="status" id="status">Drop a disc.</div>
+          <div class="row">
+            <label>AI difficulty <select id="difficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select></label>
+            <button class="primary" id="newGame">New game</button>
+          </div>
+          <div class="scoreline"><div class="scorebox">You<strong id="humanScore">0</strong></div><div class="scorebox">AI<strong id="aiScore">0</strong></div></div>
+          <div class="scorebox">Draws<strong id="drawScore">0</strong></div>
+          <p class="hint"><b>Easy</b> chooses legal columns at random. <b>Medium</b> wins, blocks, then prefers the centre. <b>Hard</b> searches ahead with alpha-beta minimax and a window evaluator.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+<script>
+const ROWS=6, COLS=7, HUMAN='R', AI='Y';
+const boardEl=document.getElementById('board'), statusEl=document.getElementById('status'), difficultyEl=document.getElementById('difficulty');
+const scores={R:0,Y:0,D:0}; let board, gameOver=false, thinking=false;
+function newBoard(){ return Array.from({length:ROWS},()=>Array(COLS).fill('')); }
+function newGame(){ board=newBoard(); gameOver=false; thinking=false; render(); setStatus('Your move. Click a column.'); }
+function setStatus(t){ statusEl.textContent=t; }
+function validCols(b=board){ return [...Array(COLS).keys()].filter(c=>!b[0][c]); }
+function drop(b,c,mark){ for(let r=ROWS-1;r>=0;r--) if(!b[r][c]){ b[r][c]=mark; return r; } return -1; }
+function clone(b){ return b.map(row=>row.slice()); }
+function winInfo(b=board){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(b[r][c]) for(const [dr,dc] of dirs){
+    const cells=[]; for(let k=0;k<4;k++){ const rr=r+dr*k, cc=c+dc*k; if(rr<0||rr>=ROWS||cc<0||cc>=COLS||b[rr][cc]!==b[r][c]) break; cells.push(rr*COLS+cc); }
+    if(cells.length===4) return {mark:b[r][c], cells};
+  }
+  if(validCols(b).length===0) return {mark:'D', cells:[]}; return null;
+}
+function render(winCells=[]){
+  boardEl.innerHTML='';
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){ const cell=document.createElement('button'); cell.className='cell playable'+(winCells.includes(r*COLS+c)?' win':''); cell.disabled=gameOver||thinking||!!board[0][c]; cell.onclick=()=>humanMove(c); if(board[r][c]){ const disc=document.createElement('span'); disc.className=board[r][c]===HUMAN?'disc-red':'disc-yellow'; cell.appendChild(disc); } boardEl.appendChild(cell); }
+  humanScore.textContent=scores.R; aiScore.textContent=scores.Y; drawScore.textContent=scores.D;
+}
+function humanMove(c){ if(gameOver||thinking||!validCols().includes(c)) return; drop(board,c,HUMAN); afterMove(); if(!gameOver){ thinking=true; setStatus('AI thinking…'); render(); setTimeout(aiMove,180); } }
+function afterMove(){ const w=winInfo(); if(!w){ render(); return; } gameOver=true; scores[w.mark]++; render(w.cells); setStatus(w.mark===HUMAN?'You win. Gravity approves.':w.mark===AI?'AI wins. The yellow menace prevails.':'Draw. Board full, dignity mostly intact.'); }
+function aiMove(){ const c=chooseMove(); if(c!==undefined) drop(board,c,AI); thinking=false; afterMove(); if(!gameOver) setStatus('Your move.'); }
+function tactical(mark,b=board){ for(const c of validCols(b)){ const n=clone(b); drop(n,c,mark); const w=winInfo(n); if(w&&w.mark===mark) return c; } }
+function chooseMove(){ const cols=validCols(); if(difficultyEl.value==='easy') return cols[Math.floor(Math.random()*cols.length)]; const win=tactical(AI); if(win!==undefined) return win; const block=tactical(HUMAN); if(block!==undefined) return block; const ordered=cols.slice().sort((a,b)=>Math.abs(3-a)-Math.abs(3-b)); if(difficultyEl.value==='medium') return ordered[0]; let best=-Infinity, move=ordered[0]; for(const c of ordered){ const n=clone(board); drop(n,c,AI); const score=minimax(n,5,false,-Infinity,Infinity); if(score>best){ best=score; move=c; } } return move; }
+function scoreWindow(arr){ const a=arr.filter(x=>x===AI).length, h=arr.filter(x=>x===HUMAN).length, e=arr.filter(x=>!x).length; if(a===4)return 100000; if(h===4)return -100000; if(a===3&&e===1)return 80; if(a===2&&e===2)return 15; if(h===3&&e===1)return -95; if(h===2&&e===2)return -12; return 0; }
+function evaluate(b){ let score=0; for(let r=0;r<ROWS;r++) if(b[r][3]===AI) score+=6; else if(b[r][3]===HUMAN) score-=6; for(let r=0;r<ROWS;r++) for(let c=0;c<COLS-3;c++) score+=scoreWindow([b[r][c],b[r][c+1],b[r][c+2],b[r][c+3]]); for(let c=0;c<COLS;c++) for(let r=0;r<ROWS-3;r++) score+=scoreWindow([b[r][c],b[r+1][c],b[r+2][c],b[r+3][c]]); for(let r=0;r<ROWS-3;r++) for(let c=0;c<COLS-3;c++) score+=scoreWindow([b[r][c],b[r+1][c+1],b[r+2][c+2],b[r+3][c+3]]); for(let r=0;r<ROWS-3;r++) for(let c=3;c<COLS;c++) score+=scoreWindow([b[r][c],b[r+1][c-1],b[r+2][c-2],b[r+3][c-3]]); return score; }
+function minimax(b,depth,maximizing,alpha,beta){ const w=winInfo(b); if(w) return w.mark===AI?100000+depth:w.mark===HUMAN?-100000-depth:0; if(depth===0) return evaluate(b); const cols=validCols(b).sort((a,b)=>Math.abs(3-a)-Math.abs(3-b)); if(maximizing){ let value=-Infinity; for(const c of cols){ const n=clone(b); drop(n,c,AI); value=Math.max(value,minimax(n,depth-1,false,alpha,beta)); alpha=Math.max(alpha,value); if(alpha>=beta) break; } return value; } let value=Infinity; for(const c of cols){ const n=clone(b); drop(n,c,HUMAN); value=Math.min(value,minimax(n,depth-1,true,alpha,beta)); beta=Math.min(beta,value); if(alpha>=beta) break; } return value; }
+document.getElementById('newGame').onclick=newGame; difficultyEl.onchange=newGame; newGame();
+</script>
+</body>
+</html>

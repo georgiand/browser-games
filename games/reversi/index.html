@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reversi — TopSOUL Games</title>
+  <link rel="stylesheet" href="../shared/strategy.css">
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar"><a class="back" href="../../index.html">← Games</a><span class="pill">You are black · AI is white</span></div>
+    <section class="card">
+      <div class="layout">
+        <div>
+          <h1>Reversi</h1>
+          <p class="subtitle">Flip discs, steal corners, pretend it was the plan all along.</p>
+          <div class="board-wrap"><div id="board" class="board reversi" aria-label="Reversi board"></div></div>
+        </div>
+        <aside class="panel">
+          <div class="status" id="status">Your move.</div>
+          <div class="row">
+            <label>AI difficulty <select id="difficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select></label>
+            <button class="primary" id="newGameBtn">New game</button>
+          </div>
+          <div class="scoreline"><div class="scorebox">Black / You<strong id="blackScore">2</strong></div><div class="scorebox">White / AI<strong id="whiteScore">2</strong></div></div>
+          <p class="hint"><b>Easy</b> plays random legal moves. <b>Medium</b> takes corners and flips greedily. <b>Hard</b> searches ahead with mobility, corner, and stability-ish weights. The “ish” is doing honest work.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+<script>
+const SIZE=8, HUMAN='B', AI='W', EMPTY='';
+const dirs=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+const weights=[[120,-25,20,5,5,20,-25,120],[-25,-45,-5,-5,-5,-5,-45,-25],[20,-5,15,3,3,15,-5,20],[5,-5,3,3,3,3,-5,5],[5,-5,3,3,3,3,-5,5],[20,-5,15,3,3,15,-5,20],[-25,-45,-5,-5,-5,-5,-45,-25],[120,-25,20,5,5,20,-25,120]];
+const boardEl=document.getElementById('board'), statusEl=document.getElementById('status'), difficultyEl=document.getElementById('difficulty');
+let board, current=HUMAN, gameOver=false, thinking=false;
+function clone(b){ return b.map(r=>r.slice()); }
+function init(){ board=Array.from({length:SIZE},()=>Array(SIZE).fill(EMPTY)); board[3][3]=AI; board[3][4]=HUMAN; board[4][3]=HUMAN; board[4][4]=AI; current=HUMAN; gameOver=false; thinking=false; render(); setStatus('Your move.'); }
+function inBounds(r,c){ return r>=0&&r<SIZE&&c>=0&&c<SIZE; }
+function opponent(m){ return m===HUMAN?AI:HUMAN; }
+function flipsFor(b,r,c,mark){ if(b[r][c]) return []; const opp=opponent(mark), flips=[]; for(const [dr,dc] of dirs){ let rr=r+dr, cc=c+dc, line=[]; while(inBounds(rr,cc)&&b[rr][cc]===opp){ line.push([rr,cc]); rr+=dr; cc+=dc; } if(line.length&&inBounds(rr,cc)&&b[rr][cc]===mark) flips.push(...line); } return flips; }
+function legalMoves(b,mark){ const moves=[]; for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){ const f=flipsFor(b,r,c,mark); if(f.length) moves.push({r,c,flips:f}); } return moves; }
+function applyMove(b,move,mark){ const n=clone(b); n[move.r][move.c]=mark; for(const [r,c] of move.flips) n[r][c]=mark; return n; }
+function counts(b=board){ let B=0,W=0; for(const row of b) for(const v of row){ if(v===HUMAN)B++; if(v===AI)W++; } return {B,W}; }
+function render(){ const legal=gameOver||thinking?[]:legalMoves(board,HUMAN).map(m=>m.r*SIZE+m.c); boardEl.innerHTML=''; for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){ const cell=document.createElement('button'); cell.className='cell'+(legal.includes(r*SIZE+c)?' playable':''); cell.disabled=!legal.includes(r*SIZE+c); cell.onclick=()=>humanMove(r,c); if(board[r][c]){ const d=document.createElement('span'); d.className=board[r][c]===HUMAN?'disc-black':'disc-white'; cell.appendChild(d); } boardEl.appendChild(cell); } const sc=counts(); blackScore.textContent=sc.B; whiteScore.textContent=sc.W; }
+function setStatus(t){ statusEl.textContent=t; }
+function maybeEndOrPass(){ const humanMoves=legalMoves(board,HUMAN), aiMoves=legalMoves(board,AI); if(!humanMoves.length&&!aiMoves.length){ gameOver=true; render(); const sc=counts(); setStatus(sc.B>sc.W?'You win. Corners well burgled.':sc.W>sc.B?'AI wins. Quietly irritating.':'Draw. The board shrugs.'); return true; } if(!humanMoves.length){ setStatus('No legal move for you — AI plays again.'); thinking=true; render(); setTimeout(aiMove,350); return true; } return false; }
+function humanMove(r,c){ if(gameOver||thinking) return; const move=legalMoves(board,HUMAN).find(m=>m.r===r&&m.c===c); if(!move) return; board=applyMove(board,move,HUMAN); render(); if(maybeEndOrPass()) return; thinking=true; setStatus('AI thinking…'); render(); setTimeout(aiMove,220); }
+function aiMove(){ const moves=legalMoves(board,AI); if(!moves.length){ thinking=false; render(); if(!maybeEndOrPass()) setStatus('AI passes. Your move.'); return; } const move=chooseMove(moves); board=applyMove(board,move,AI); thinking=false; render(); if(!maybeEndOrPass()) setStatus('Your move.'); }
+function chooseMove(moves){ const d=difficultyEl.value; if(d==='easy') return moves[Math.floor(Math.random()*moves.length)]; const corners=moves.filter(m=>(m.r===0||m.r===7)&&(m.c===0||m.c===7)); if(d==='medium'){ if(corners.length) return corners[0]; return moves.slice().sort((a,b)=>b.flips.length-a.flips.length)[0]; } let best=-Infinity, bestMove=moves[0]; for(const m of moves){ const n=applyMove(board,m,AI); const score=minimax(n,4,false,-Infinity,Infinity); if(score>best){ best=score; bestMove=m; } } return bestMove; }
+function evaluate(b){ const sc=counts(b); let score=(sc.W-sc.B)*4; for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){ if(b[r][c]===AI) score+=weights[r][c]; else if(b[r][c]===HUMAN) score-=weights[r][c]; } score+=(legalMoves(b,AI).length-legalMoves(b,HUMAN).length)*8; return score; }
+function minimax(b,depth,maximizing,alpha,beta){ const ai=legalMoves(b,AI), hu=legalMoves(b,HUMAN); if(depth===0||(!ai.length&&!hu.length)) return evaluate(b); if(maximizing){ if(!ai.length) return minimax(b,depth-1,false,alpha,beta); let value=-Infinity; for(const m of ai){ value=Math.max(value,minimax(applyMove(b,m,AI),depth-1,false,alpha,beta)); alpha=Math.max(alpha,value); if(alpha>=beta) break; } return value; } if(!hu.length) return minimax(b,depth-1,true,alpha,beta); let value=Infinity; for(const m of hu){ value=Math.min(value,minimax(applyMove(b,m,HUMAN),depth-1,true,alpha,beta)); beta=Math.min(beta,value); if(alpha>=beta) break; } return value; }
+document.getElementById('newGameBtn').onclick=init; difficultyEl.onchange=init; init();
+</script>
+</body>
+</html>
