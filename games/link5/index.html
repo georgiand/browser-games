@@ -6,38 +6,219 @@
   <title>Link5 | TopSOUL Games</title>
   <link rel="stylesheet" href="../shared/nokia.css">
 </head>
-<body>
-  <main class="phone">
-    <section class="bezel">
-      <div class="top"><a class="back" href="../../index.html">Games</a><span>3410</span></div>
-      <div class="lcd">
-        <div class="statusbar"><span>LINK5</span><span id="status">SELECT</span></div>
-        <div class="game">
-          <div class="menu-title">LINK FIVE</div>
-          <div id="board" class="link-board" aria-label="Link5 grid"></div>
-          <p id="msg" class="message">Move cursor, press OK. Make five in a row.</p>
-        </div>
+<body class="link5-page">
+  <main class="screen-cabinet">
+    <div class="screen-top"><a class="screen-back" href="../../index.html">Games</a><span>LINK5</span><span id="status">SELECT</span></div>
+    <section class="lcd link5-lcd" aria-label="Link5 game screen">
+      <div class="statusbar"><span>LINK5</span><span id="difficultyLabel">MEDIUM</span></div>
+      <div class="game link5-game">
+        <div class="menu-title">LINK FIVE</div>
+        <div id="board" class="link-board" aria-label="Link5 grid"></div>
+        <p id="msg" class="message">Move cursor, press OK. Make five in a row.</p>
       </div>
-      <div class="softkeys"><button id="newGame">NEW</button><button id="hint">HINT</button></div>
-      <div class="navkey" aria-label="Nokia navigation pad">
-        <button class="k-up" data-move="up">▲</button><button class="k-left" data-move="left">◀</button><button class="k-ok" id="ok">OK</button><button class="k-right" data-move="right">▶</button><button class="k-down" data-move="down">▼</button>
-      </div>
-      <div class="keypad"><button data-jump="0">1</button><button data-jump="1">2</button><button data-jump="2">3</button><button data-jump="3">4</button><button data-jump="4">5</button><button data-jump="5">6</button><button data-jump="6">7</button><button data-jump="7">8</button><button data-jump="8">9</button></div>
     </section>
+    <section class="screen-controls" aria-label="Link5 controls">
+      <label>Difficulty
+        <select id="difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+      <button id="newGame">New</button>
+      <button id="hint">Hint</button>
+      <button id="ok">OK</button>
+    </section>
+    <p class="screen-help">Arrow keys move cursor. Enter/Space places. Click/tap a cell to place directly.</p>
   </main>
 <script>
-const N=9,board=document.getElementById('board'),msg=document.getElementById('msg'),statusEl=document.getElementById('status');let grid,cursor,over,winLine=[];
-function reset(){grid=Array(N*N).fill(0);cursor=40;over=false;winLine=[];msg.textContent='Move cursor, press OK. Make five in a row.';render()}
-function render(){board.innerHTML='';grid.forEach((v,i)=>{const b=document.createElement('button');b.className='link-cell';if(v===1){b.textContent='●';b.classList.add('player')}else if(v===2){b.textContent='○';b.classList.add('ai')}else b.textContent=i===cursor?'▣':'';if(winLine.includes(i))b.classList.add('win');b.onclick=()=>{cursor=i;place()};board.appendChild(b)});statusEl.textContent=over?'DONE':'SELECT'}
-function place(){if(over||grid[cursor])return;grid[cursor]=1;let w=check(1);if(w)return end('You linked five.',w);if(full())return end('Draw.',[]);ai();w=check(2);if(w)return end('Phone linked five.',w);render()}
-function ai(){const empt=grid.map((v,i)=>v?null:i).filter(v=>v!==null);let pick=findWin(2)||findWin(1)||bestMove(empt);grid[pick]=2;msg.textContent='Phone placed.'}
-function findWin(p){for(const i of grid.map((v,i)=>v?null:i).filter(v=>v!==null)){grid[i]=p;let ok=check(p);grid[i]=0;if(ok)return i}return null}
-function bestMove(empt){return empt.sort((a,b)=>score(b)-score(a))[0]}
-function score(i){let r=Math.floor(i/N),c=i%N,total=18-Math.abs(4-r)-Math.abs(4-c);for(const p of [2,1])for(const[dR,dC]of [[1,0],[0,1],[1,1],[1,-1]]){let run=0;for(const dir of [-1,1]){let rr=r+dR*dir,cc=c+dC*dir;while(rr>=0&&rr<N&&cc>=0&&cc<N&&grid[rr*N+cc]===p){run++;rr+=dR*dir;cc+=dC*dir}}total+=run*run*(p===2?5:4)}return total}
-function check(p){for(let r=0;r<N;r++)for(let c=0;c<N;c++)for(const[dR,dC]of [[1,0],[0,1],[1,1],[1,-1]]){let line=[];for(let k=0;k<5;k++){let rr=r+dR*k,cc=c+dC*k;if(rr<0||rr>=N||cc<0||cc>=N||grid[rr*N+cc]!==p){line=[];break}line.push(rr*N+cc)}if(line.length===5)return line}return null}
-function full(){return grid.every(Boolean)}function end(t,line){over=true;winLine=line;msg.textContent=t;statusEl.textContent='DONE';render()}
-function moveCursor(dir){let r=Math.floor(cursor/N),c=cursor%N;if(dir==='up')r=Math.max(0,r-1);if(dir==='down')r=Math.min(N-1,r+1);if(dir==='left')c=Math.max(0,c-1);if(dir==='right')c=Math.min(N-1,c+1);cursor=r*N+c;render()}
-document.getElementById('newGame').onclick=reset;document.getElementById('hint').onclick=()=>msg.textContent='Classic phone style: cursor first, OK to place. Five straight marks wins.';document.getElementById('ok').onclick=place;document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>moveCursor(b.dataset.move));document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{cursor=Number(b.dataset.jump)*9+4;render()});document.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))moveCursor(e.key.replace('Arrow','').toLowerCase());if(e.key==='Enter'||e.key===' ')place();if(e.key>='1'&&e.key<='9'){cursor=(Number(e.key)-1)*9+4;render()}});reset();
+const N=9;
+const WIN=5;
+const HUMAN=1;
+const PHONE=2;
+const board=document.getElementById('board');
+const msg=document.getElementById('msg');
+const statusEl=document.getElementById('status');
+const difficulty=document.getElementById('difficulty');
+const difficultyLabel=document.getElementById('difficultyLabel');
+let grid,cursor,over,winLine=[];
+
+function reset(){
+  grid=Array(N*N).fill(0);
+  cursor=40;
+  over=false;
+  winLine=[];
+  msg.textContent='Move cursor, press OK. Make five in a row.';
+  render();
+}
+
+function render(){
+  board.innerHTML='';
+  const frag=document.createDocumentFragment();
+  grid.forEach((v,i)=>{
+    const cell=document.createElement('button');
+    cell.type='button';
+    cell.className='link-cell';
+    cell.setAttribute('aria-label',`Row ${Math.floor(i/N)+1}, column ${i%N+1}`);
+    cell.dataset.index=i;
+    if(v===HUMAN){
+      cell.innerHTML='<span class="piece human-piece" aria-hidden="true"></span>';
+      cell.classList.add('player');
+    }else if(v===PHONE){
+      cell.innerHTML='<span class="piece phone-piece" aria-hidden="true"></span>';
+      cell.classList.add('ai');
+    }else if(i===cursor){
+      cell.innerHTML='<span class="cursor-piece" aria-hidden="true"></span>';
+    }
+    if(winLine.includes(i)) cell.classList.add('win');
+    cell.onclick=()=>{cursor=i;place();};
+    frag.appendChild(cell);
+  });
+  board.appendChild(frag);
+  statusEl.textContent=over?'DONE':'SELECT';
+  difficultyLabel.textContent=difficulty.value.toUpperCase();
+}
+
+function place(){
+  if(over||grid[cursor]) return;
+  grid[cursor]=HUMAN;
+  let w=check(HUMAN);
+  if(w) return end('You linked five.',w);
+  if(full()) return end('Draw.',[]);
+  aiMove();
+  w=check(PHONE);
+  if(w) return end('Phone linked five.',w);
+  render();
+}
+
+function aiMove(){
+  const empties=emptyCells();
+  let pick;
+  if(difficulty.value==='easy') pick=randomChoice(empties);
+  else if(difficulty.value==='medium') pick=mediumMove(empties);
+  else pick=hardMove(empties);
+  grid[pick]=PHONE;
+  msg.textContent=`Phone placed. ${difficulty.value[0].toUpperCase()+difficulty.value.slice(1)} mode.`;
+}
+
+function randomChoice(items){return items[Math.floor(Math.random()*items.length)];}
+function emptyCells(){return grid.map((v,i)=>v?null:i).filter(v=>v!==null);}
+function mediumMove(empties){return findWin(PHONE)||findWin(HUMAN)||bestByScore(empties,PHONE);}
+function hardMove(empties){
+  return findWin(PHONE)||findWin(HUMAN)||minimaxMove(empties,2)||bestByScore(empties,PHONE);
+}
+
+function minimaxMove(empties,depth){
+  const candidates=topCandidates(empties,14,PHONE);
+  let best=-Infinity,bestMove=candidates[0];
+  for(const move of candidates){
+    grid[move]=PHONE;
+    const value=minimax(depth-1,false,-Infinity,Infinity);
+    grid[move]=0;
+    if(value>best){best=value;bestMove=move;}
+  }
+  return bestMove;
+}
+
+function minimax(depth,maximising,alpha,beta){
+  if(check(PHONE)) return 100000+depth;
+  if(check(HUMAN)) return -100000-depth;
+  const empties=emptyCells();
+  if(depth===0||!empties.length) return evaluateBoard();
+  const candidates=topCandidates(empties,10,maximising?PHONE:HUMAN);
+  if(maximising){
+    let best=-Infinity;
+    for(const move of candidates){
+      grid[move]=PHONE;
+      best=Math.max(best,minimax(depth-1,false,alpha,beta));
+      grid[move]=0;
+      alpha=Math.max(alpha,best);
+      if(beta<=alpha) break;
+    }
+    return best;
+  }
+  let best=Infinity;
+  for(const move of candidates){
+    grid[move]=HUMAN;
+    best=Math.min(best,minimax(depth-1,true,alpha,beta));
+    grid[move]=0;
+    beta=Math.min(beta,best);
+    if(beta<=alpha) break;
+  }
+  return best;
+}
+
+function topCandidates(empties,limit,player){
+  return [...empties].sort((a,b)=>moveScore(b,player)-moveScore(a,player)).slice(0,limit);
+}
+function bestByScore(empties,player){return topCandidates(empties,1,player)[0];}
+function moveScore(i,player){
+  let r=Math.floor(i/N),c=i%N;
+  let total=18-Math.abs(4-r)-Math.abs(4-c);
+  for(const p of [player, player===PHONE?HUMAN:PHONE]){
+    for(const[dR,dC]of [[1,0],[0,1],[1,1],[1,-1]]){
+      let run=0,open=0;
+      for(const dir of [-1,1]){
+        let rr=r+dR*dir,cc=c+dC*dir;
+        while(rr>=0&&rr<N&&cc>=0&&cc<N&&grid[rr*N+cc]===p){run++;rr+=dR*dir;cc+=dC*dir;}
+        if(rr>=0&&rr<N&&cc>=0&&cc<N&&grid[rr*N+cc]===0) open++;
+      }
+      const weight=p===player?7:6;
+      total+=(run*run*weight)+(open*run*2);
+    }
+  }
+  return total;
+}
+
+function evaluateBoard(){
+  let total=0;
+  for(let i=0;i<grid.length;i++) if(!grid[i]) total+=moveScore(i,PHONE)-moveScore(i,HUMAN);
+  return total;
+}
+
+function findWin(player){
+  for(const i of emptyCells()){
+    grid[i]=player;
+    const ok=check(player);
+    grid[i]=0;
+    if(ok) return i;
+  }
+  return null;
+}
+
+function check(player){
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++) for(const[dR,dC]of [[1,0],[0,1],[1,1],[1,-1]]){
+    const line=[];
+    for(let k=0;k<WIN;k++){
+      const rr=r+dR*k,cc=c+dC*k;
+      if(rr<0||rr>=N||cc<0||cc>=N||grid[rr*N+cc]!==player){line.length=0;break;}
+      line.push(rr*N+cc);
+    }
+    if(line.length===WIN) return line;
+  }
+  return null;
+}
+function full(){return grid.every(Boolean);}
+function end(text,line){over=true;winLine=line;msg.textContent=text;statusEl.textContent='DONE';render();}
+function moveCursor(dir){
+  let r=Math.floor(cursor/N),c=cursor%N;
+  if(dir==='up') r=Math.max(0,r-1);
+  if(dir==='down') r=Math.min(N-1,r+1);
+  if(dir==='left') c=Math.max(0,c-1);
+  if(dir==='right') c=Math.min(N-1,c+1);
+  cursor=r*N+c;
+  render();
+}
+
+document.getElementById('newGame').onclick=reset;
+document.getElementById('hint').onclick=()=>msg.textContent='Easy: random. Medium: win/block + shape score. Hard: limited alpha-beta search.';
+document.getElementById('ok').onclick=place;
+difficulty.onchange=()=>{difficultyLabel.textContent=difficulty.value.toUpperCase();msg.textContent='Difficulty set to '+difficulty.value+'.';};
+document.addEventListener('keydown',e=>{
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();moveCursor(e.key.replace('Arrow','').toLowerCase());}
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();place();}
+});
+reset();
 </script>
 </body>
 </html>

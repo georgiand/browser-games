@@ -70,10 +70,13 @@ Nokia 3410-style Mancala/Kalah sowing game against the phone, with a handset-lik
 ### 🔳 Link5
 **Path:** `games/link5/index.html`
 
-Nokia 3410-style five-in-a-row strategy game against a compact blocking AI.
+Link5 five-in-a-row strategy game against selectable phone AI.
 
 - **Goal:** Link five marks horizontally, vertically, or diagonally
-- **AI:** Takes immediate wins, blocks immediate losses, then favours central/connected moves
+- **AI difficulty:** Easy, Medium, Hard
+- **Easy:** Random legal moves
+- **Medium:** Immediate win/block plus shape and centre scoring
+- **Hard:** Immediate tactics plus bounded alpha-beta search over strongest candidate moves
 - **Controls:** Cursor + OK, arrow keys/Enter, or direct click/tap
 
 ---
