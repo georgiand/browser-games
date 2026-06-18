@@ -91,7 +91,7 @@ index.html                    ← Games portal (main landing page)
 games/
   shared/
     strategy.css              ← Shared styling for board strategy games
-    nokia.css                 ← Shared Nokia 3410-inspired styling
+    nokia.css                 ← Shared retro screen styling for Bantumi and Link5
   snake/
     index.html                ← Snake game
   tic-tac-toe/
