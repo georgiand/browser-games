@@ -1,8 +1,42 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bantumi | TopSOUL Games</title><link rel="stylesheet" href="../shared/nokia.css"></head><body><main class="phone"><div class="top"><a class="back" href="../../index.html">← Games</a><strong>Nokia 3410 Classics</strong></div><section class="screen"><div class="layout"><div class="lcd"><div id="board" class="grid"></div></div><aside class="panel"><h1>Bantumi</h1><div class="row"><span class="stat">You <b id="you">0</b></span><span class="stat">Phone <b id="ai">0</b></span></div><p class="message" id="msg">Mancala/Kalah-style sowing. Your pits are along the bottom. Feed the store on the right.</p><button id="start">New game</button><p class="hint">Click one of your six lower pits. Last stone in your store earns another turn; empty-pit captures apply.</p></aside></div></section></main><script>
-const board=document.getElementById('board'),msg=document.getElementById('msg'),youEl=document.getElementById('you'),aiEl=document.getElementById('ai');board.style.gridTemplateColumns='repeat(8,1fr)';board.style.height='420px';let pits,turn;
-function reset(){pits=[4,4,4,4,4,4,0,4,4,4,4,4,4,0];turn='you';render()}
-function render(){board.innerHTML='';let map=[13,12,11,10,9,8,7,6,0,1,2,3,4,5];map.forEach((idx,i)=>{let c=document.createElement('button');c.className='cell';c.style.minHeight=(idx==6||idx==13)?'180px':'86px';c.textContent=pits[idx];if(idx<6&&turn==='you'&&pits[idx])c.onclick=()=>move(idx);else c.disabled=true; if(idx==6||idx==13)c.classList.add('filled'); board.appendChild(c)});youEl.textContent=pits[6];aiEl.textContent=pits[13];if(done()){let a=pits.slice(0,6).reduce((x,y)=>x+y,0),b=pits.slice(7,13).reduce((x,y)=>x+y,0);pits[6]+=a;pits[13]+=b;for(let i=0;i<14;i++)if(i!==6&&i!==13)pits[i]=0;msg.textContent=pits[6]>pits[13]?'You win. Ancient beans vindicated.':pits[6]<pits[13]?'Phone wins. Rude, but traditional.':'Draw.'}}
-function done(){return pits.slice(0,6).every(x=>!x)||pits.slice(7,13).every(x=>!x)}
-function move(i){let stones=pits[i];if(!stones)return;pits[i]=0;let cur=i;while(stones){cur=(cur+1)%14;if(turn==='you'&&cur===13)continue;if(turn==='ai'&&cur===6)continue;pits[cur]++;stones--}if(turn==='you'&&cur<6&&pits[cur]===1&&pits[12-cur]){pits[6]+=pits[12-cur]+1;pits[cur]=pits[12-cur]=0}if(turn==='ai'&&cur>6&&cur<13&&pits[cur]===1&&pits[12-cur]){pits[13]+=pits[12-cur]+1;pits[cur]=pits[12-cur]=0}let again=(turn==='you'&&cur===6)||(turn==='ai'&&cur===13);if(!again)turn=turn==='you'?'ai':'you';render();if(turn==='ai'&&!done())setTimeout(ai,450)}
-function ai(){let choices=[7,8,9,10,11,12].filter(i=>pits[i]);let pick=choices.find(i=>{let s=pits[i],cur=i;while(s){cur=(cur+1)%14;if(cur!==6)s--}return cur===13})||choices.sort((a,b)=>pits[b]-pits[a])[0];msg.textContent='Phone sows pit '+(pick-6)+'.';move(pick)}
-document.getElementById('start').onclick=reset;reset();</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bantumi | TopSOUL Games</title>
+  <link rel="stylesheet" href="../shared/nokia.css">
+</head>
+<body>
+  <main class="phone">
+    <section class="bezel">
+      <div class="top"><a class="back" href="../../index.html">Games</a><span>3410</span></div>
+      <div class="lcd">
+        <div class="statusbar"><span>BANTUMI</span><span id="turn">YOUR TURN</span></div>
+        <div class="game">
+          <div class="scoreline"><span>PHONE <b id="aiScore">0</b></span><span>YOU <b id="youScore">0</b></span></div>
+          <div id="board" class="bantumi-board" aria-label="Bantumi board"></div>
+          <p id="msg" class="message">Choose a lower cup.</p>
+        </div>
+      </div>
+      <div class="softkeys"><button id="newGame">NEW</button><button id="rules">RULES</button></div>
+      <div class="navkey" aria-label="Nokia navigation pad">
+        <button class="k-up" data-nav="-6">▲</button><button class="k-left" data-nav="-1">◀</button><button class="k-ok" id="ok">OK</button><button class="k-right" data-nav="1">▶</button><button class="k-down" data-nav="6">▼</button>
+      </div>
+      <div class="keypad"><button data-pit="0">1</button><button data-pit="1">2</button><button data-pit="2">3</button><button data-pit="3">4</button><button data-pit="4">5</button><button data-pit="5">6</button><button disabled>*</button><button disabled>0</button><button disabled>#</button></div>
+    </section>
+  </main>
+<script>
+const board=document.getElementById('board'),msg=document.getElementById('msg'),turnEl=document.getElementById('turn'),youScore=document.getElementById('youScore'),aiScore=document.getElementById('aiScore');
+let pits,turn,selected=0,locked=false;
+function reset(){pits=[4,4,4,4,4,4,0,4,4,4,4,4,4,0];turn='you';selected=0;locked=false;msg.textContent='Choose a lower cup.';render()}
+function beads(n){return n?Array(Math.min(n,12)).fill('●').join('')+(n>12?'+'+(n-12):''):'·'}
+function cup(idx,label,cls='pit'){const d=document.createElement('div');d.className=cls;if(idx===selected&&turn==='you'&&idx<6&&pits[idx])d.classList.add('active');d.innerHTML='<span class="beads">'+beads(pits[idx])+'</span><small>'+label+'</small>';if(idx<6){const b=document.createElement('button');b.setAttribute('aria-label','Cup '+(idx+1)+', '+pits[idx]+' stones');b.onclick=()=>{selected=idx;move(idx)};d.appendChild(b)}return d}
+function render(){board.innerHTML='';board.appendChild(cup(13,'','store ai'));[12,11,10,9,8,7].forEach((idx,i)=>board.appendChild(cup(idx,6-i)));board.appendChild(cup(6,'','store you'));[0,1,2,3,4,5].forEach((idx,i)=>board.appendChild(cup(idx,i+1)));youScore.textContent=pits[6];aiScore.textContent=pits[13];turnEl.textContent=turn==='you'?'YOUR TURN':'PHONE';[...board.querySelectorAll('button')].forEach(b=>{const m=b.getAttribute('aria-label').match(/Cup (\d)/);const pit=m?Number(m[1])-1:0;b.disabled=locked||turn!=='you'||!pits[pit]});if(done())finish()}
+function done(){return pits.slice(0,6).every(x=>x===0)||pits.slice(7,13).every(x=>x===0)}
+function finish(){pits[6]+=pits.slice(0,6).reduce((a,b)=>a+b,0);pits[13]+=pits.slice(7,13).reduce((a,b)=>a+b,0);for(let i=0;i<14;i++)if(i!==6&&i!==13)pits[i]=0;locked=true;msg.textContent=pits[6]>pits[13]?'You win.':'Phone wins.';turnEl.textContent='GAME OVER';}
+function move(i){if(locked||!pits[i]||(turn==='you'&&i>5)||(turn==='phone'&&(i<7||i>12)))return;let stones=pits[i];pits[i]=0;let cur=i;while(stones){cur=(cur+1)%14;if(turn==='you'&&cur===13)continue;if(turn==='phone'&&cur===6)continue;pits[cur]++;stones--}if(turn==='you'&&cur<6&&pits[cur]===1&&pits[12-cur]){pits[6]+=pits[12-cur]+1;pits[cur]=pits[12-cur]=0;msg.textContent='Captured.'}else if(turn==='phone'&&cur>6&&cur<13&&pits[cur]===1&&pits[12-cur]){pits[13]+=pits[12-cur]+1;pits[cur]=pits[12-cur]=0;msg.textContent='Phone captured.'}else msg.textContent='Sown.';const again=(turn==='you'&&cur===6)||(turn==='phone'&&cur===13);if(!again)turn=turn==='you'?'phone':'you';render();if(turn==='phone'&&!locked)setTimeout(ai,520)}
+function ai(){let choices=[7,8,9,10,11,12].filter(i=>pits[i]);let extra=choices.find(i=>{let s=pits[i],c=i;while(s){c=(c+1)%14;if(c!==6)s--}return c===13});let pick=extra||choices.find(i=>{let s=pits[i],c=i;while(s){c=(c+1)%14;if(c!==6)s--}return c>6&&c<13&&pits[c]===0&&pits[12-c]>0})||choices.sort((a,b)=>pits[b]-pits[a])[0];msg.textContent='Phone selects '+(pick-6)+'.';move(pick)}
+document.getElementById('newGame').onclick=reset;document.getElementById('rules').onclick=()=>msg.textContent='Sow stones anti-clockwise. Store on right. Empty lower cup captures opposite.';document.querySelectorAll('[data-pit]').forEach(b=>b.onclick=()=>{selected=+b.dataset.pit;move(selected)});document.getElementById('ok').onclick=()=>move(selected);document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{selected=Math.max(0,Math.min(5,selected+Number(b.dataset.nav)));render()});document.addEventListener('keydown',e=>{if(e.key>='1'&&e.key<='6'){selected=Number(e.key)-1;move(selected)}if(e.key==='ArrowLeft')selected=Math.max(0,selected-1);if(e.key==='ArrowRight')selected=Math.min(5,selected+1);if(e.key==='Enter'||e.key===' ')move(selected);render()});reset();
+</script>
+</body>
+</html>
