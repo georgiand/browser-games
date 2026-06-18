@@ -6,37 +6,228 @@
   <title>Bantumi | TopSOUL Games</title>
   <link rel="stylesheet" href="../shared/nokia.css">
 </head>
-<body>
-  <main class="phone">
-    <section class="bezel">
-      <div class="top"><a class="back" href="../../index.html">Games</a><span>3410</span></div>
-      <div class="lcd">
-        <div class="statusbar"><span>BANTUMI</span><span id="turn">YOUR TURN</span></div>
-        <div class="game">
-          <div class="scoreline"><span>PHONE <b id="aiScore">0</b></span><span>YOU <b id="youScore">0</b></span></div>
-          <div id="board" class="bantumi-board" aria-label="Bantumi board"></div>
-          <p id="msg" class="message">Choose a lower cup.</p>
-        </div>
+<body class="bantumi-page">
+  <main class="screen-cabinet bantumi-cabinet">
+    <div class="screen-top"><a class="screen-back" href="../../index.html">Games</a><span>BANTUMI</span><span id="turn">YOUR TURN</span></div>
+    <section class="lcd bantumi-lcd" aria-label="Bantumi game screen">
+      <div class="statusbar"><span>BANTUMI</span><span id="difficultyLabel">MEDIUM</span></div>
+      <div class="game bantumi-game">
+        <div class="scoreline"><span>PHONE <b id="aiScore">0</b></span><span>YOU <b id="youScore">0</b></span></div>
+        <div id="board" class="bantumi-board-fixed" aria-label="Bantumi board"></div>
+        <p id="msg" class="message">Choose a lower cup.</p>
       </div>
-      <div class="softkeys"><button id="newGame">NEW</button><button id="rules">RULES</button></div>
-      <div class="navkey" aria-label="Nokia navigation pad">
-        <button class="k-up" data-nav="-6">▲</button><button class="k-left" data-nav="-1">◀</button><button class="k-ok" id="ok">OK</button><button class="k-right" data-nav="1">▶</button><button class="k-down" data-nav="6">▼</button>
-      </div>
-      <div class="keypad"><button data-pit="0">1</button><button data-pit="1">2</button><button data-pit="2">3</button><button data-pit="3">4</button><button data-pit="4">5</button><button data-pit="5">6</button><button disabled>*</button><button disabled>0</button><button disabled>#</button></div>
     </section>
+    <section class="screen-controls" aria-label="Bantumi controls">
+      <label>Difficulty
+        <select id="difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+      <button id="newGame">New</button>
+      <button id="rules">Rules</button>
+      <button id="ok">OK</button>
+    </section>
+    <p class="screen-help">Click/tap a lower cup, use 1–6, or move selection with ←/→ and press Enter.</p>
   </main>
 <script>
-const board=document.getElementById('board'),msg=document.getElementById('msg'),turnEl=document.getElementById('turn'),youScore=document.getElementById('youScore'),aiScore=document.getElementById('aiScore');
-let pits,turn,selected=0,locked=false;
-function reset(){pits=[4,4,4,4,4,4,0,4,4,4,4,4,4,0];turn='you';selected=0;locked=false;msg.textContent='Choose a lower cup.';render()}
-function beads(n){return n?Array(Math.min(n,12)).fill('●').join('')+(n>12?'+'+(n-12):''):'·'}
-function cup(idx,label,cls='pit'){const d=document.createElement('div');d.className=cls;if(idx===selected&&turn==='you'&&idx<6&&pits[idx])d.classList.add('active');d.innerHTML='<span class="beads">'+beads(pits[idx])+'</span><small>'+label+'</small>';if(idx<6){const b=document.createElement('button');b.setAttribute('aria-label','Cup '+(idx+1)+', '+pits[idx]+' stones');b.onclick=()=>{selected=idx;move(idx)};d.appendChild(b)}return d}
-function render(){board.innerHTML='';board.appendChild(cup(13,'','store ai'));[12,11,10,9,8,7].forEach((idx,i)=>board.appendChild(cup(idx,6-i)));board.appendChild(cup(6,'','store you'));[0,1,2,3,4,5].forEach((idx,i)=>board.appendChild(cup(idx,i+1)));youScore.textContent=pits[6];aiScore.textContent=pits[13];turnEl.textContent=turn==='you'?'YOUR TURN':'PHONE';[...board.querySelectorAll('button')].forEach(b=>{const m=b.getAttribute('aria-label').match(/Cup (\d)/);const pit=m?Number(m[1])-1:0;b.disabled=locked||turn!=='you'||!pits[pit]});if(done())finish()}
-function done(){return pits.slice(0,6).every(x=>x===0)||pits.slice(7,13).every(x=>x===0)}
-function finish(){pits[6]+=pits.slice(0,6).reduce((a,b)=>a+b,0);pits[13]+=pits.slice(7,13).reduce((a,b)=>a+b,0);for(let i=0;i<14;i++)if(i!==6&&i!==13)pits[i]=0;locked=true;msg.textContent=pits[6]>pits[13]?'You win.':'Phone wins.';turnEl.textContent='GAME OVER';}
-function move(i){if(locked||!pits[i]||(turn==='you'&&i>5)||(turn==='phone'&&(i<7||i>12)))return;let stones=pits[i];pits[i]=0;let cur=i;while(stones){cur=(cur+1)%14;if(turn==='you'&&cur===13)continue;if(turn==='phone'&&cur===6)continue;pits[cur]++;stones--}if(turn==='you'&&cur<6&&pits[cur]===1&&pits[12-cur]){pits[6]+=pits[12-cur]+1;pits[cur]=pits[12-cur]=0;msg.textContent='Captured.'}else if(turn==='phone'&&cur>6&&cur<13&&pits[cur]===1&&pits[12-cur]){pits[13]+=pits[12-cur]+1;pits[cur]=pits[12-cur]=0;msg.textContent='Phone captured.'}else msg.textContent='Sown.';const again=(turn==='you'&&cur===6)||(turn==='phone'&&cur===13);if(!again)turn=turn==='you'?'phone':'you';render();if(turn==='phone'&&!locked)setTimeout(ai,520)}
-function ai(){let choices=[7,8,9,10,11,12].filter(i=>pits[i]);let extra=choices.find(i=>{let s=pits[i],c=i;while(s){c=(c+1)%14;if(c!==6)s--}return c===13});let pick=extra||choices.find(i=>{let s=pits[i],c=i;while(s){c=(c+1)%14;if(c!==6)s--}return c>6&&c<13&&pits[c]===0&&pits[12-c]>0})||choices.sort((a,b)=>pits[b]-pits[a])[0];msg.textContent='Phone selects '+(pick-6)+'.';move(pick)}
-document.getElementById('newGame').onclick=reset;document.getElementById('rules').onclick=()=>msg.textContent='Sow stones anti-clockwise. Store on right. Empty lower cup captures opposite.';document.querySelectorAll('[data-pit]').forEach(b=>b.onclick=()=>{selected=+b.dataset.pit;move(selected)});document.getElementById('ok').onclick=()=>move(selected);document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{selected=Math.max(0,Math.min(5,selected+Number(b.dataset.nav)));render()});document.addEventListener('keydown',e=>{if(e.key>='1'&&e.key<='6'){selected=Number(e.key)-1;move(selected)}if(e.key==='ArrowLeft')selected=Math.max(0,selected-1);if(e.key==='ArrowRight')selected=Math.min(5,selected+1);if(e.key==='Enter'||e.key===' ')move(selected);render()});reset();
+const HUMAN='human';
+const PHONE='phone';
+const HUMAN_PITS=[0,1,2,3,4,5];
+const PHONE_PITS=[7,8,9,10,11,12];
+const board=document.getElementById('board');
+const msg=document.getElementById('msg');
+const turnEl=document.getElementById('turn');
+const youScore=document.getElementById('youScore');
+const aiScore=document.getElementById('aiScore');
+const difficulty=document.getElementById('difficulty');
+const difficultyLabel=document.getElementById('difficultyLabel');
+let pits,turn,selected,locked;
+
+function reset(){
+  pits=[4,4,4,4,4,4,0,4,4,4,4,4,4,0];
+  turn=HUMAN;
+  selected=0;
+  locked=false;
+  msg.textContent='Choose a lower cup.';
+  render();
+}
+
+function render(){
+  board.innerHTML='';
+  board.appendChild(storeCup(13,'phone-store','PHONE'));
+  PHONE_PITS.slice().reverse().forEach((idx,i)=>board.appendChild(pitCup(idx,6-i,false)));
+  board.appendChild(storeCup(6,'human-store','YOU'));
+  HUMAN_PITS.forEach((idx,i)=>board.appendChild(pitCup(idx,i+1,true)));
+  youScore.textContent=pits[6];
+  aiScore.textContent=pits[13];
+  turnEl.textContent=locked?'GAME OVER':turn===HUMAN?'YOUR TURN':'PHONE';
+  difficultyLabel.textContent=difficulty.value.toUpperCase();
+}
+
+function pitCup(idx,label,isHuman){
+  const cup=document.createElement('button');
+  cup.type='button';
+  cup.className='bantumi-cup pit-cup';
+  cup.dataset.index=idx;
+  cup.setAttribute('aria-label',`${isHuman?'Your':'Phone'} cup ${label}, ${pits[idx]} stones`);
+  if(isHuman && idx===selected && turn===HUMAN && !locked) cup.classList.add('active');
+  if(!isHuman || locked || turn!==HUMAN || pits[idx]===0) cup.disabled=true;
+  cup.innerHTML=`<span class="stone-field" aria-hidden="true">${stonesMarkup(pits[idx])}</span><span class="cup-label">${label}</span>`;
+  cup.onclick=()=>{selected=idx;humanMove(idx);};
+  return cup;
+}
+
+function storeCup(idx,cls,label){
+  const cup=document.createElement('div');
+  cup.className=`bantumi-cup store-cup ${cls}`;
+  cup.innerHTML=`<span class="store-label">${label}</span><span class="store-score">${pits[idx]}</span>`;
+  return cup;
+}
+
+function stonesMarkup(n){
+  if(n===0) return '<i></i>';
+  return Array.from({length:Math.min(n,12)},(_,i)=>`<i style="--x:${(i*37)%76}%;--y:${(i*53)%70}%"></i>`).join('')+(n>12?`<b>+${n-12}</b>`:'');
+}
+
+function humanMove(idx){
+  if(locked || turn!==HUMAN || !HUMAN_PITS.includes(idx) || pits[idx]===0) return;
+  const result=applyMove(pits,idx,HUMAN);
+  msg.textContent=result.capture?'Captured.':result.extra?'Extra turn.':'Phone thinking.';
+  if(checkFinished()) return;
+  if(result.extra){turn=HUMAN;render();return;}
+  turn=PHONE;
+  render();
+  setTimeout(phoneMove,360);
+}
+
+function phoneMove(){
+  if(locked || turn!==PHONE) return;
+  const idx=choosePhoneMove();
+  const result=applyMove(pits,idx,PHONE);
+  msg.textContent=`Phone chose ${idx-6}. ${difficulty.value[0].toUpperCase()+difficulty.value.slice(1)} mode.`;
+  if(checkFinished()) return;
+  turn=result.extra?PHONE:HUMAN;
+  render();
+  if(turn===PHONE) setTimeout(phoneMove,360);
+}
+
+function applyMove(state,idx,player){
+  let stones=state[idx];
+  state[idx]=0;
+  let cur=idx;
+  while(stones){
+    cur=(cur+1)%14;
+    if(player===HUMAN && cur===13) continue;
+    if(player===PHONE && cur===6) continue;
+    state[cur]++;
+    stones--;
+  }
+  let capture=false;
+  if(player===HUMAN && cur>=0 && cur<=5 && state[cur]===1 && state[12-cur]>0){
+    state[6]+=state[12-cur]+1;
+    state[cur]=0;
+    state[12-cur]=0;
+    capture=true;
+  }
+  if(player===PHONE && cur>=7 && cur<=12 && state[cur]===1 && state[12-cur]>0){
+    state[13]+=state[12-cur]+1;
+    state[cur]=0;
+    state[12-cur]=0;
+    capture=true;
+  }
+  return {extra:(player===HUMAN && cur===6)||(player===PHONE && cur===13),capture,last:cur};
+}
+
+function checkFinished(){
+  if(!sideEmpty(pits,HUMAN) && !sideEmpty(pits,PHONE)) return false;
+  pits[6]+=sumSide(pits,HUMAN);
+  pits[13]+=sumSide(pits,PHONE);
+  [...HUMAN_PITS,...PHONE_PITS].forEach(i=>pits[i]=0);
+  locked=true;
+  msg.textContent=pits[6]>pits[13]?'You win.':pits[6]<pits[13]?'Phone wins.':'Draw.';
+  render();
+  return true;
+}
+
+function choosePhoneMove(){
+  const legal=legalMoves(pits,PHONE);
+  if(difficulty.value==='easy') return randomChoice(legal);
+  if(difficulty.value==='medium') return mediumMove(pits,PHONE);
+  return hardMove(pits,PHONE,5).move;
+}
+
+function mediumMove(state,player){
+  const legal=legalMoves(state,player);
+  const extra=legal.find(i=>simulate(state,i,player).result.extra);
+  if(extra!==undefined) return extra;
+  const capture=legal.find(i=>simulate(state,i,player).result.capture);
+  if(capture!==undefined) return capture;
+  return legal.sort((a,b)=>moveValue(state,b,player)-moveValue(state,a,player))[0];
+}
+
+function hardMove(state,player,depth,alpha=-Infinity,beta=Infinity){
+  const legal=legalMoves(state,player);
+  if(depth===0 || !legal.length || sideEmpty(state,HUMAN) || sideEmpty(state,PHONE)) return {move:legal[0],score:evaluate(state)};
+  let bestMove=legal[0];
+  let bestScore=player===PHONE?-Infinity:Infinity;
+  const ordered=legal.sort((a,b)=>moveValue(state,b,player)-moveValue(state,a,player));
+  for(const move of ordered){
+    const {next,result}=simulate(state,move,player);
+    const nextPlayer=result.extra?player:(player===PHONE?HUMAN:PHONE);
+    const score=hardMove(next,nextPlayer,depth-1,alpha,beta).score;
+    if(player===PHONE){
+      if(score>bestScore){bestScore=score;bestMove=move;}
+      alpha=Math.max(alpha,bestScore);
+    }else{
+      if(score<bestScore){bestScore=score;bestMove=move;}
+      beta=Math.min(beta,bestScore);
+    }
+    if(beta<=alpha) break;
+  }
+  return {move:bestMove,score:bestScore};
+}
+
+function simulate(state,move,player){
+  const next=state.slice();
+  const result=applyMove(next,move,player);
+  if(sideEmpty(next,HUMAN)||sideEmpty(next,PHONE)){
+    next[6]+=sumSide(next,HUMAN);
+    next[13]+=sumSide(next,PHONE);
+    [...HUMAN_PITS,...PHONE_PITS].forEach(i=>next[i]=0);
+  }
+  return {next,result};
+}
+
+function moveValue(state,move,player){
+  const {next,result}=simulate(state,move,player);
+  const store=player===PHONE?13:6;
+  const opponentStore=player===PHONE?6:13;
+  return (next[store]-state[store])*8 - (next[opponentStore]-state[opponentStore])*6 + (result.extra?18:0) + (result.capture?12:0) + evaluate(next)*(player===PHONE?1:-1);
+}
+function evaluate(state){return (state[13]-state[6])*10 + sumSide(state,PHONE)-sumSide(state,HUMAN);}
+function legalMoves(state,player){return (player===HUMAN?HUMAN_PITS:PHONE_PITS).filter(i=>state[i]>0);}
+function sideEmpty(state,player){return legalMoves(state,player).length===0;}
+function sumSide(state,player){return (player===HUMAN?HUMAN_PITS:PHONE_PITS).reduce((sum,i)=>sum+state[i],0);}
+function randomChoice(items){return items[Math.floor(Math.random()*items.length)];}
+
+function moveSelection(delta){
+  selected=Math.max(0,Math.min(5,selected+delta));
+  render();
+}
+
+document.getElementById('newGame').onclick=reset;
+document.getElementById('rules').onclick=()=>msg.textContent='Sow anti-clockwise. Your store is right. Empty lower cup captures opposite stones.';
+document.getElementById('ok').onclick=()=>humanMove(selected);
+difficulty.onchange=()=>{difficultyLabel.textContent=difficulty.value.toUpperCase();msg.textContent='Difficulty set to '+difficulty.value+'.';};
+document.addEventListener('keydown',e=>{
+  if(e.key>='1'&&e.key<='6'){e.preventDefault();selected=Number(e.key)-1;humanMove(selected);}
+  if(e.key==='ArrowLeft'){e.preventDefault();moveSelection(-1);}
+  if(e.key==='ArrowRight'){e.preventDefault();moveSelection(1);}
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();humanMove(selected);}
+});
+reset();
 </script>
 </body>
 </html>

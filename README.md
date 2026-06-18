@@ -61,11 +61,14 @@ Reversi/Othello-style disc-flipping strategy game.
 ### 🫘 Bantumi
 **Path:** `games/bantumi/index.html`
 
-Nokia 3410-style Mancala/Kalah sowing game against the phone, with a handset-like UI.
+Bantumi/Mancala sowing game against selectable phone AI.
 
 - **Rules:** Extra turns from landing in your store, empty-pit captures, end-game sweeping
-- **AI:** Simple heuristic phone opponent that looks for extra turns and strong pits
-- **Controls:** Click/tap lower pits, number keys 1–6, or Nokia-style navigation + OK
+- **AI difficulty:** Easy, Medium, Hard
+- **Easy:** Random legal cups
+- **Medium:** Prioritises extra turns, captures, then store gain
+- **Hard:** Bounded minimax/alpha-beta over sowing outcomes
+- **Controls:** Click/tap lower cups, number keys 1–6, or selection + OK/Enter
 
 ### 🔳 Link5
 **Path:** `games/link5/index.html`
