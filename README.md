@@ -54,6 +54,52 @@ Reversi/Othello-style disc-flipping strategy game.
 - **Hard:** Minimax with mobility, corner, and positional weighting
 - **Rules support:** Legal-move hints, passes, and end-game scoring
 
+
+### 📱 Snake II
+**Path:** `games/snake-ii/index.html`
+
+Nokia 3410-inspired Snake II homage.
+
+- **Gameplay:** Edge collisions, self-collision, food, and timed bonus pickups
+- **Controls:** Arrow keys/WASD plus on-screen direction buttons
+- **Best score:** Persisted locally in the browser
+
+### 🚀 Space Impact
+**Path:** `games/space-impact/index.html`
+
+Monochrome side-scrolling shooter inspired by the Nokia classic.
+
+- **Gameplay:** Move vertically, fire shots, destroy incoming enemies
+- **Controls:** Arrow keys/WASD, Space, and on-screen controls
+- **Scoring:** Points for each enemy destroyed; three lives per sortie
+
+### ⚪ Bumper
+**Path:** `games/bumper/index.html`
+
+Pocket pinball-style score chase.
+
+- **Gameplay:** Paddle, ball physics, bumpers, score, and limited balls
+- **Controls:** Left/right keyboard controls plus touch buttons
+- **Scoring:** Bumpers and paddle saves add points
+
+### 🫘 Bantumi
+**Path:** `games/bantumi/index.html`
+
+Mancala/Kalah-style sowing game against the phone.
+
+- **Rules:** Extra turns from landing in your store, empty-pit captures, end-game sweeping
+- **AI:** Simple heuristic phone opponent that looks for extra turns and strong pits
+- **Controls:** Click/tap one of your six lower pits
+
+### 🔳 Link5
+**Path:** `games/link5/index.html`
+
+Five-in-a-row strategy game against a compact blocking AI.
+
+- **Goal:** Link five marks horizontally, vertically, or diagonally
+- **AI:** Takes immediate wins, blocks immediate losses, then favours central/connected moves
+- **Controls:** Click/tap any empty square
+
 ---
 
 ## Structure
@@ -63,6 +109,7 @@ index.html                    ← Games portal (main landing page)
 games/
   shared/
     strategy.css              ← Shared styling for board strategy games
+    nokia.css                 ← Shared Nokia 3410-inspired styling
   snake/
     index.html                ← Snake game
   tic-tac-toe/
@@ -71,6 +118,16 @@ games/
     index.html                ← 4 in a Row
   reversi/
     index.html                ← Reversi
+  snake-ii/
+    index.html                ← Snake II
+  space-impact/
+    index.html                ← Space Impact
+  bumper/
+    index.html                ← Bumper
+  bantumi/
+    index.html                ← Bantumi
+  link5/
+    index.html                ← Link5
 README.md
 ```
 
