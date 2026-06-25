@@ -411,6 +411,53 @@
       line-height: 1.6;
     }
 
+    .result-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(135deg, rgba(15, 18, 27, 0.92), rgba(28, 34, 49, 0.88));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .result-banner.visible {
+      display: flex;
+    }
+
+    .result-banner.win {
+      border-color: rgba(52, 211, 153, 0.28);
+      background: linear-gradient(135deg, rgba(16, 40, 34, 0.94), rgba(19, 30, 44, 0.92));
+    }
+
+    .result-banner.lose {
+      border-color: rgba(255, 107, 107, 0.28);
+      background: linear-gradient(135deg, rgba(52, 20, 24, 0.94), rgba(26, 20, 31, 0.92));
+    }
+
+    .result-banner-text {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .result-banner-title {
+      margin: 0;
+      font-size: clamp(20px, 3vw, 28px);
+      letter-spacing: -0.03em;
+    }
+
+    .result-banner-copy {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
     .side-panel {
       display: flex;
       flex-direction: column;
@@ -591,6 +638,14 @@
             </div>
           </div>
 
+          <div class="result-banner" id="resultBanner" aria-live="polite">
+            <div class="result-banner-text">
+              <h2 class="result-banner-title" id="resultBannerTitle">Board cleared</h2>
+              <p class="result-banner-copy" id="resultBannerCopy">You solved beginner in 068 seconds. Suspiciously competent.</p>
+            </div>
+            <button id="resultBannerNewGameBtn" class="primary">New game</button>
+          </div>
+
           <div class="mobile-mode" aria-label="Touch controls">
             <button id="revealModeBtn" class="mode-btn active">Reveal mode</button>
             <button id="flagModeBtn" class="mode-btn">Flag mode</button>
@@ -655,6 +710,9 @@
     const overlayEl = document.getElementById('overlay');
     const overlayTitleEl = document.getElementById('overlayTitle');
     const overlayCopyEl = document.getElementById('overlayCopy');
+    const resultBannerEl = document.getElementById('resultBanner');
+    const resultBannerTitleEl = document.getElementById('resultBannerTitle');
+    const resultBannerCopyEl = document.getElementById('resultBannerCopy');
     const scoreboardEl = document.getElementById('scoreboard');
     const difficultyCardsEl = document.getElementById('difficultyCards');
     const revealModeBtn = document.getElementById('revealModeBtn');
@@ -825,6 +883,7 @@
       updateTimer();
       updateMineCounter();
       hideOverlay();
+      hideResultBanner();
       setStatus('ready');
       pauseBtn.textContent = 'Pause';
       pauseBtn.disabled = false;
@@ -933,7 +992,7 @@
       pauseBtn.disabled = true;
       setStatus('lost');
       renderBoard();
-      showOverlay('Boom', 'That one was a mine. The board felt strongly about it. Start another round and feign wisdom.');
+      showResultBanner('lose', 'Boom', 'That one was a mine. The board felt strongly about it. At least now you can see exactly where the treachery was.');
     }
 
     function checkWin() {
@@ -961,7 +1020,7 @@
       recordHighScore();
       setStatus('won');
       renderBoard();
-      showOverlay('Board cleared', `You solved ${difficulties[currentDifficulty].label.toLowerCase()} in ${formatTime(timer)} seconds. Suspiciously competent.`);
+      showResultBanner('win', 'Board cleared', `You solved ${difficulties[currentDifficulty].label.toLowerCase()} in ${formatTime(timer)} seconds. Suspiciously competent.`);
     }
 
     function recordHighScore() {
@@ -984,6 +1043,18 @@
       overlayEl.classList.remove('visible');
     }
 
+    function showResultBanner(type, title, copy) {
+      resultBannerTitleEl.textContent = title;
+      resultBannerCopyEl.textContent = copy;
+      resultBannerEl.classList.remove('win', 'lose');
+      if (type) resultBannerEl.classList.add(type);
+      resultBannerEl.classList.add('visible');
+    }
+
+    function hideResultBanner() {
+      resultBannerEl.classList.remove('visible', 'win', 'lose');
+    }
+
     function togglePause(forceState = null) {
       if (gameOver || firstMove) return;
       paused = typeof forceState === 'boolean' ? forceState : !paused;
@@ -991,10 +1062,12 @@
         stopTimer();
         pauseBtn.textContent = 'Resume';
         setStatus('paused');
+        hideResultBanner();
         showOverlay('Paused', 'Time politely stops while you collect your nerves.');
       } else {
         pauseBtn.textContent = 'Pause';
         hideOverlay();
+        hideResultBanner();
         setStatus('playing');
         startTimerIfNeeded();
       }
@@ -1119,6 +1192,7 @@
 
     difficultySelectEl.addEventListener('change', (event) => resetGame(event.target.value));
     document.getElementById('newGameBtn').addEventListener('click', () => resetGame(currentDifficulty));
+    document.getElementById('resultBannerNewGameBtn').addEventListener('click', () => resetGame(currentDifficulty));
     pauseBtn.addEventListener('click', () => togglePause());
     revealModeBtn.addEventListener('click', () => setTouchMode('reveal'));
     flagModeBtn.addEventListener('click', () => setTouchMode('flag'));
