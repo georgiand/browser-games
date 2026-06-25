@@ -54,6 +54,16 @@ Reversi/Othello-style disc-flipping strategy game.
 - **Hard:** Minimax with mobility, corner, and positional weighting
 - **Rules support:** Legal-move hints, passes, and end-game scoring
 
+### 💣 Minesweeper
+**Path:** `games/minesweeper/index.html`
+
+Classic Minesweeper with a sharper modern UI and the usual quiet distrust.
+
+- **Difficulty levels:** Beginner (9×9 · 10), Intermediate (16×16 · 40), Expert (30×16 · 99)
+- **Classic rules:** First click is safe, recursive empty clears, flags, and number chording
+- **Pause:** Manual pause button plus blur-to-pause when the tab loses focus
+- **High scores:** Persistent top 3 best times per difficulty in local storage
+
 
 
 
@@ -100,6 +110,8 @@ games/
     index.html                ← 4 in a Row
   reversi/
     index.html                ← Reversi
+  minesweeper/
+    index.html                ← Minesweeper
   bantumi/
     index.html                ← Bantumi
   link5/
