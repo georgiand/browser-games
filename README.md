@@ -54,6 +54,17 @@ Reversi/Othello-style disc-flipping strategy game.
 - **Hard:** Minimax with mobility, corner, and positional weighting
 - **Rules support:** Legal-move hints, passes, and end-game scoring
 
+### 🎲 Backgammon
+**Path:** `games/backgammon/index.html`
+
+Complete single-player Backgammon against a browser AI, with a responsive board and rule-aware move guidance.
+
+- **Complete turn rules:** Opening roll with tie re-rolls, doubles as four moves, maximum-dice use, and the higher-die rule
+- **Checker rules:** Bar-entry priority, blocked points, hits to the bar, bearing off, and legal oversize bear-offs
+- **AI difficulty:** Easy picks a random complete legal turn; Medium scores hits, made points, safety, and bearing off; Hard searches bounded opponent replies across representative rolls
+- **Scoring:** Persistent session wins and points, including normal, gammon, and backgammon results
+- **Controls:** Click/tap source then highlighted destination, keyboard roll/undo/new-game shortcuts, and per-turn undo
+
 ### 💣 Minesweeper
 **Path:** `games/minesweeper/index.html`
 
@@ -121,6 +132,8 @@ games/
     index.html                ← 4 in a Row
   reversi/
     index.html                ← Reversi
+  backgammon/
+    index.html                ← Backgammon
   minesweeper/
     index.html                ← Minesweeper
   solitaire/
