@@ -5,63 +5,533 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>4 in a Row — TopSOUL Games</title>
   <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../shared/strategy.css">
+  <style>
+    :root {
+      --surface: rgba(15, 21, 29, 0.92);
+      --surface-soft: rgba(255, 255, 255, 0.045);
+      --line: rgba(255, 255, 255, 0.1);
+      --line-strong: rgba(255, 255, 255, 0.2);
+      --text: #f8fafc;
+      --muted: #9caaba;
+      --red: #ff5b5b;
+      --yellow: #ffd65a;
+      --blue: #1769d2;
+      --blue-dark: #0a347a;
+      --focus: #8ed7ff;
+      --disc-size: clamp(27px, 7.2vw, 62px);
+      --shadow: 0 30px 85px rgba(0, 0, 0, 0.52);
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: dark; }
+    body {
+      display: block;
+      margin: 0;
+      min-height: 100vh;
+      padding: 20px;
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(circle at 12% -8%, rgba(26, 118, 220, 0.3), transparent 34%),
+        radial-gradient(circle at 88% 4%, rgba(255, 91, 91, 0.13), transparent 28%),
+        linear-gradient(180deg, #0a111b 0%, #050608 72%);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, select { font: inherit; }
+    button:focus-visible, select:focus-visible, a:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .shell { width: min(1180px, 100%); margin: 0 auto; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .back, .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 9px 14px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.055);
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      backdrop-filter: blur(10px);
+    }
+    .legend-disc {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      flex: 0 0 10px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.42), 0 0 0 2px rgba(255, 91, 91, 0.16);
+    }
+    .legend-disc.yellow { margin-left: 4px; background: var(--yellow); box-shadow: inset 0 1px 1px rgba(255,255,255,.55), 0 0 0 2px rgba(255,214,90,.13); }
+
+    .card {
+      padding: clamp(16px, 2.5vw, 30px);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: clamp(20px, 3vw, 34px);
+      align-items: center;
+    }
+    .play-column { min-width: 0; }
+    .eyebrow {
+      display: block;
+      margin-bottom: 9px;
+      color: #70c5ff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(38px, 5.5vw, 62px);
+      line-height: 0.96;
+      letter-spacing: -0.06em;
+    }
+    .subtitle {
+      max-width: 620px;
+      margin: 11px 0 20px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .board-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      place-items: center;
+      min-height: 0;
+      padding: clamp(7px, 1.2vw, 13px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 25px;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 7px),
+        linear-gradient(145deg, #1b70dc, #082e73);
+      box-shadow:
+        inset 0 0 0 4px rgba(4, 27, 69, 0.44),
+        inset 0 0 42px rgba(0, 0, 0, 0.24),
+        0 22px 50px rgba(0, 0, 0, 0.36);
+    }
+    .board.connect {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-template-rows: repeat(6, minmax(0, 1fr));
+      gap: clamp(3px, 0.7vw, 8px);
+      width: 100%;
+      max-width: 650px;
+      justify-self: center;
+      aspect-ratio: 7 / 6;
+      min-width: 0;
+      min-height: 0;
+      padding: clamp(7px, 1.2vw, 14px);
+      overflow: hidden;
+      border: 1px solid rgba(0, 15, 48, 0.76);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.25), transparent 55%),
+        linear-gradient(150deg, #1974df 0%, #0b4dac 62%, #08347e 100%);
+      box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, 0.25),
+        inset 0 -12px 25px rgba(0, 19, 67, 0.36),
+        0 3px 0 #061f51;
+      isolation: isolate;
+      touch-action: manipulation;
+    }
+    .board.connect::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: linear-gradient(115deg, rgba(255,255,255,.12), transparent 24%, transparent 70%, rgba(1,20,58,.15));
+      mix-blend-mode: screen;
+    }
+    .board.connect .cell {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      padding: 0;
+      overflow: hidden;
+      border: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 48% 42%, #08111c 0 55%, #02050a 72%, #1c76dd 75% 100%);
+      box-shadow:
+        inset 0 7px 11px rgba(0, 0, 0, 0.9),
+        inset 0 -2px 2px rgba(255, 255, 255, 0.12),
+        0 1px 0 rgba(255, 255, 255, 0.12);
+      cursor: pointer;
+      transform: none;
+      transition: filter 0.14s ease, box-shadow 0.14s ease;
+    }
+    .board.connect .cell:hover:not(:disabled),
+    .board.connect .cell:focus-visible {
+      transform: none;
+      filter: brightness(1.22);
+      box-shadow: inset 0 7px 11px rgba(0,0,0,.86), 0 0 0 2px rgba(142,215,255,.72);
+    }
+    .board.connect .cell:disabled { cursor: default; opacity: 1; }
+    .disc {
+      display: block;
+      width: var(--disc-size);
+      height: var(--disc-size);
+      min-width: var(--disc-size);
+      min-height: var(--disc-size);
+      flex: 0 0 var(--disc-size);
+      border: 2px solid rgba(0, 0, 0, 0.34);
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translateZ(0);
+    }
+    .disc-red {
+      background: radial-gradient(circle at 34% 25%, #ffb0a0 0 5%, #ff6b61 20%, var(--red) 53%, #a81727 100%);
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,.13), inset -6px -8px 12px rgba(103,0,13,.3), 0 5px 9px rgba(0,0,0,.48);
+    }
+    .disc-yellow {
+      background: radial-gradient(circle at 34% 25%, #fff7b2 0 6%, #ffe773 21%, var(--yellow) 54%, #d38a12 100%);
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,.18), inset -6px -8px 12px rgba(138,78,0,.25), 0 5px 9px rgba(0,0,0,.45);
+    }
+    .disc.placed { animation: disc-drop 280ms cubic-bezier(.2,.8,.2,1.18); }
+    .cell.win .disc { animation: win-pulse 850ms ease-in-out infinite alternate; box-shadow: 0 0 0 3px #fff, 0 0 22px rgba(255,255,255,.72), inset 0 0 0 3px rgba(255,255,255,.2); }
+
+    .panel { display: grid; gap: 12px; }
+    .status-card, .panel-section {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--surface-soft);
+    }
+    .panel-kicker, .panel-heading {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+    .status { min-height: 48px; font-size: 18px; font-weight: 800; line-height: 1.35; letter-spacing: -0.02em; }
+    .row { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    select, button.primary {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 13px;
+      color: var(--text);
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      font-weight: 750;
+    }
+    select { background: #1d2734; }
+    button.primary {
+      cursor: pointer;
+      color: #24150c;
+      background: linear-gradient(135deg, #ffd978, #e8ad3c);
+      border-color: rgba(255, 214, 90, 0.68);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.42);
+      transition: transform .13s ease, filter .13s ease;
+    }
+    button.primary:hover { transform: translateY(-1px); filter: brightness(1.06); background: linear-gradient(135deg, #ffe08d, #ebb342); }
+    .scoreline { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+    .scorebox {
+      min-width: 0;
+      padding: 10px;
+      color: var(--muted);
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.055);
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .scorebox strong { display: block; margin-top: 3px; color: var(--text); font-size: 22px; letter-spacing: -.04em; }
+    .hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.58; }
+    .hint b { color: #d9e5f1; }
+
+    @keyframes disc-drop {
+      0% { transform: translateY(-48%) scale(.88); opacity: .35; }
+      70% { transform: translateY(4%) scale(1.02); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    @keyframes win-pulse { to { filter: brightness(1.22); transform: scale(.92); } }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; align-items: start; }
+      .panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .status-card { grid-column: 1 / -1; }
+    }
+    @media (max-width: 580px) {
+      :root { --disc-size: clamp(25px, 8.4vw, 45px); }
+      body { padding: 10px; }
+      .pill { display: none; }
+      .card { padding: 13px; border-radius: 21px; }
+      .subtitle { margin-bottom: 15px; font-size: 13px; }
+      .board-wrap { margin-inline: -3px; border-radius: 18px; }
+      .board.connect { border-radius: 12px; }
+      .panel { grid-template-columns: 1fr; }
+      .status-card { grid-column: auto; }
+      .scoreline { gap: 6px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
 </head>
 <body>
   <main class="shell">
-    <div class="topbar"><a class="back" href="../../index.html">← Games</a><span class="pill">You are red · AI is yellow</span></div>
+    <div class="topbar">
+      <a class="back" href="../../index.html">← Games</a>
+      <span class="pill"><span class="legend-disc" aria-hidden="true"></span>You are red <span class="legend-disc yellow" aria-hidden="true"></span>AI is yellow</span>
+    </div>
+
     <section class="card">
       <div class="layout">
-        <div>
+        <div class="play-column">
+          <span class="eyebrow">Classic strategy · 7 × 6</span>
           <h1>4 in a Row</h1>
-          <p class="subtitle">Gravity, tactics, and seven columns of mild betrayal.</p>
-          <div class="board-wrap"><div id="board" class="board connect" aria-label="4 in a Row board"></div></div>
-        </div>
-        <aside class="panel">
-          <div class="status" id="status">Drop a disc.</div>
-          <div class="row">
-            <label>AI difficulty <select id="difficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select></label>
-            <button class="primary" id="newGame">New game</button>
+          <p class="subtitle">Gravity, tactics, and seven columns of mild betrayal. Build a line before the yellow side closes the gap.</p>
+          <div class="board-wrap">
+            <div id="board" class="board connect" aria-label="4 in a Row board"></div>
           </div>
-          <div class="scoreline"><div class="scorebox">You<strong id="humanScore">0</strong></div><div class="scorebox">AI<strong id="aiScore">0</strong></div></div>
-          <div class="scorebox">Draws<strong id="drawScore">0</strong></div>
-          <p class="hint"><b>Easy</b> chooses legal columns at random. <b>Medium</b> wins, blocks, then prefers the centre. <b>Hard</b> searches ahead with alpha-beta minimax and a window evaluator.</p>
+        </div>
+
+        <aside class="panel" aria-label="Game information">
+          <section class="status-card">
+            <span class="panel-kicker">Current turn</span>
+            <div class="status" id="status" aria-live="polite">Drop a disc.</div>
+          </section>
+          <section class="panel-section">
+            <span class="panel-heading">Opponent</span>
+            <div class="row">
+              <label>AI difficulty
+                <select id="difficulty"><option value="easy">Easy · random</option><option value="medium" selected>Medium · tactical</option><option value="hard">Hard · search</option></select>
+              </label>
+              <button class="primary" id="newGame" type="button">New game</button>
+            </div>
+          </section>
+          <section class="panel-section">
+            <span class="panel-heading">Session score</span>
+            <div class="scoreline">
+              <div class="scorebox">You<strong id="humanScore">0</strong></div>
+              <div class="scorebox">AI<strong id="aiScore">0</strong></div>
+              <div class="scorebox">Draws<strong id="drawScore">0</strong></div>
+            </div>
+          </section>
+          <section class="panel-section">
+            <span class="panel-heading">How the AI plays</span>
+            <p class="hint"><b>Easy</b> chooses legal columns at random. <b>Medium</b> wins, blocks, then prefers the centre. <b>Hard</b> searches ahead with alpha-beta minimax and a window evaluator.</p>
+          </section>
         </aside>
       </div>
     </section>
   </main>
-<script>
-const ROWS=6, COLS=7, HUMAN='R', AI='Y';
-const boardEl=document.getElementById('board'), statusEl=document.getElementById('status'), difficultyEl=document.getElementById('difficulty');
-const scores={R:0,Y:0,D:0}; let board, gameOver=false, thinking=false;
-function newBoard(){ return Array.from({length:ROWS},()=>Array(COLS).fill('')); }
-function newGame(){ board=newBoard(); gameOver=false; thinking=false; render(); setStatus('Your move. Click a column.'); }
-function setStatus(t){ statusEl.textContent=t; }
-function validCols(b=board){ return [...Array(COLS).keys()].filter(c=>!b[0][c]); }
-function drop(b,c,mark){ for(let r=ROWS-1;r>=0;r--) if(!b[r][c]){ b[r][c]=mark; return r; } return -1; }
-function clone(b){ return b.map(row=>row.slice()); }
-function winInfo(b=board){
-  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(b[r][c]) for(const [dr,dc] of dirs){
-    const cells=[]; for(let k=0;k<4;k++){ const rr=r+dr*k, cc=c+dc*k; if(rr<0||rr>=ROWS||cc<0||cc>=COLS||b[rr][cc]!==b[r][c]) break; cells.push(rr*COLS+cc); }
-    if(cells.length===4) return {mark:b[r][c], cells};
-  }
-  if(validCols(b).length===0) return {mark:'D', cells:[]}; return null;
-}
-function render(winCells=[]){
-  boardEl.innerHTML='';
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){ const cell=document.createElement('button'); cell.className='cell playable'+(winCells.includes(r*COLS+c)?' win':''); cell.disabled=gameOver||thinking||!!board[0][c]; cell.onclick=()=>humanMove(c); if(board[r][c]){ const disc=document.createElement('span'); disc.className=board[r][c]===HUMAN?'disc-red':'disc-yellow'; cell.appendChild(disc); } boardEl.appendChild(cell); }
-  humanScore.textContent=scores.R; aiScore.textContent=scores.Y; drawScore.textContent=scores.D;
-}
-function humanMove(c){ if(gameOver||thinking||!validCols().includes(c)) return; drop(board,c,HUMAN); afterMove(); if(!gameOver){ thinking=true; setStatus('AI thinking…'); render(); setTimeout(aiMove,180); } }
-function afterMove(){ const w=winInfo(); if(!w){ render(); return; } gameOver=true; scores[w.mark]++; render(w.cells); setStatus(w.mark===HUMAN?'You win. Gravity approves.':w.mark===AI?'AI wins. The yellow menace prevails.':'Draw. Board full, dignity mostly intact.'); }
-function aiMove(){ const c=chooseMove(); if(c!==undefined) drop(board,c,AI); thinking=false; afterMove(); if(!gameOver) setStatus('Your move.'); }
-function tactical(mark,b=board){ for(const c of validCols(b)){ const n=clone(b); drop(n,c,mark); const w=winInfo(n); if(w&&w.mark===mark) return c; } }
-function chooseMove(){ const cols=validCols(); if(difficultyEl.value==='easy') return cols[Math.floor(Math.random()*cols.length)]; const win=tactical(AI); if(win!==undefined) return win; const block=tactical(HUMAN); if(block!==undefined) return block; const ordered=cols.slice().sort((a,b)=>Math.abs(3-a)-Math.abs(3-b)); if(difficultyEl.value==='medium') return ordered[0]; let best=-Infinity, move=ordered[0]; for(const c of ordered){ const n=clone(board); drop(n,c,AI); const score=minimax(n,5,false,-Infinity,Infinity); if(score>best){ best=score; move=c; } } return move; }
-function scoreWindow(arr){ const a=arr.filter(x=>x===AI).length, h=arr.filter(x=>x===HUMAN).length, e=arr.filter(x=>!x).length; if(a===4)return 100000; if(h===4)return -100000; if(a===3&&e===1)return 80; if(a===2&&e===2)return 15; if(h===3&&e===1)return -95; if(h===2&&e===2)return -12; return 0; }
-function evaluate(b){ let score=0; for(let r=0;r<ROWS;r++) if(b[r][3]===AI) score+=6; else if(b[r][3]===HUMAN) score-=6; for(let r=0;r<ROWS;r++) for(let c=0;c<COLS-3;c++) score+=scoreWindow([b[r][c],b[r][c+1],b[r][c+2],b[r][c+3]]); for(let c=0;c<COLS;c++) for(let r=0;r<ROWS-3;r++) score+=scoreWindow([b[r][c],b[r+1][c],b[r+2][c],b[r+3][c]]); for(let r=0;r<ROWS-3;r++) for(let c=0;c<COLS-3;c++) score+=scoreWindow([b[r][c],b[r+1][c+1],b[r+2][c+2],b[r+3][c+3]]); for(let r=0;r<ROWS-3;r++) for(let c=3;c<COLS;c++) score+=scoreWindow([b[r][c],b[r+1][c-1],b[r+2][c-2],b[r+3][c-3]]); return score; }
-function minimax(b,depth,maximizing,alpha,beta){ const w=winInfo(b); if(w) return w.mark===AI?100000+depth:w.mark===HUMAN?-100000-depth:0; if(depth===0) return evaluate(b); const cols=validCols(b).sort((a,b)=>Math.abs(3-a)-Math.abs(3-b)); if(maximizing){ let value=-Infinity; for(const c of cols){ const n=clone(b); drop(n,c,AI); value=Math.max(value,minimax(n,depth-1,false,alpha,beta)); alpha=Math.max(alpha,value); if(alpha>=beta) break; } return value; } let value=Infinity; for(const c of cols){ const n=clone(b); drop(n,c,HUMAN); value=Math.min(value,minimax(n,depth-1,true,alpha,beta)); beta=Math.min(beta,value); if(alpha>=beta) break; } return value; }
-document.getElementById('newGame').onclick=newGame; difficultyEl.onchange=newGame; newGame();
-</script>
+
+  <script>
+    const ROWS = 6, COLS = 7, HUMAN = 'R', AI = 'Y';
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const difficultyEl = document.getElementById('difficulty');
+    const humanScoreEl = document.getElementById('humanScore');
+    const aiScoreEl = document.getElementById('aiScore');
+    const drawScoreEl = document.getElementById('drawScore');
+    const scores = { R: 0, Y: 0, D: 0 };
+    let board, gameOver = false, thinking = false, lastPlaced = null;
+
+    function newBoard() { return Array.from({ length: ROWS }, () => Array(COLS).fill('')); }
+    function newGame() {
+      board = newBoard();
+      gameOver = false;
+      thinking = false;
+      lastPlaced = null;
+      render();
+      setStatus('Your move. Click a column.');
+    }
+    function setStatus(text) { statusEl.textContent = text; }
+    function validCols(b = board) { return [...Array(COLS).keys()].filter(c => !b[0][c]); }
+    function drop(b, c, mark) {
+      for (let r = ROWS - 1; r >= 0; r--) if (!b[r][c]) { b[r][c] = mark; return r; }
+      return -1;
+    }
+    function clone(b) { return b.map(row => row.slice()); }
+    function winInfo(b = board) {
+      const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (b[r][c]) for (const [dr, dc] of directions) {
+        const cells = [];
+        for (let k = 0; k < 4; k++) {
+          const rr = r + dr * k, cc = c + dc * k;
+          if (rr < 0 || rr >= ROWS || cc < 0 || cc >= COLS || b[rr][cc] !== b[r][c]) break;
+          cells.push(rr * COLS + cc);
+        }
+        if (cells.length === 4) return { mark: b[r][c], cells };
+      }
+      if (validCols(b).length === 0) return { mark: 'D', cells: [] };
+      return null;
+    }
+    function render(winCells = []) {
+      boardEl.innerHTML = '';
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        const cell = document.createElement('button');
+        const mark = board[r][c];
+        const isPlaced = lastPlaced && lastPlaced.r === r && lastPlaced.c === c;
+        cell.type = 'button';
+        cell.className = `cell playable${winCells.includes(r * COLS + c) ? ' win' : ''}`;
+        cell.disabled = gameOver || thinking || !!board[0][c];
+        cell.setAttribute('aria-label', mark
+          ? `Row ${r + 1}, column ${c + 1}: ${mark === HUMAN ? 'red' : 'yellow'} disc`
+          : `Row ${r + 1}, column ${c + 1}${cell.disabled ? ': unavailable' : ': drop a disc'}`);
+        cell.onclick = () => humanMove(c);
+        if (mark) {
+          const disc = document.createElement('span');
+          disc.className = `disc ${mark === HUMAN ? 'disc-red' : 'disc-yellow'}${isPlaced ? ' placed' : ''}`;
+          disc.setAttribute('aria-hidden', 'true');
+          cell.appendChild(disc);
+        }
+        boardEl.appendChild(cell);
+      }
+      lastPlaced = null;
+      humanScoreEl.textContent = scores.R;
+      aiScoreEl.textContent = scores.Y;
+      drawScoreEl.textContent = scores.D;
+    }
+    function humanMove(c) {
+      if (gameOver || thinking || !validCols().includes(c)) return;
+      const r = drop(board, c, HUMAN);
+      lastPlaced = { r, c };
+      afterMove();
+      if (!gameOver) {
+        thinking = true;
+        setStatus('AI thinking…');
+        render();
+        setTimeout(aiMove, 180);
+      }
+    }
+    function afterMove() {
+      const winner = winInfo();
+      if (!winner) { render(); return; }
+      gameOver = true;
+      scores[winner.mark]++;
+      render(winner.cells);
+      setStatus(winner.mark === HUMAN ? 'You win. Gravity approves.' : winner.mark === AI ? 'AI wins. The yellow menace prevails.' : 'Draw. Board full, dignity mostly intact.');
+    }
+    function aiMove() {
+      const c = chooseMove();
+      if (c !== undefined) {
+        const r = drop(board, c, AI);
+        lastPlaced = { r, c };
+      }
+      thinking = false;
+      afterMove();
+      if (!gameOver) setStatus('Your move.');
+    }
+    function tactical(mark, b = board) {
+      for (const c of validCols(b)) {
+        const next = clone(b);
+        drop(next, c, mark);
+        const winner = winInfo(next);
+        if (winner && winner.mark === mark) return c;
+      }
+    }
+    function chooseMove() {
+      const cols = validCols();
+      if (difficultyEl.value === 'easy') return cols[Math.floor(Math.random() * cols.length)];
+      const win = tactical(AI);
+      if (win !== undefined) return win;
+      const block = tactical(HUMAN);
+      if (block !== undefined) return block;
+      const ordered = cols.slice().sort((a, b) => Math.abs(3 - a) - Math.abs(3 - b));
+      if (difficultyEl.value === 'medium') return ordered[0];
+      let best = -Infinity, move = ordered[0];
+      for (const c of ordered) {
+        const next = clone(board);
+        drop(next, c, AI);
+        const score = minimax(next, 5, false, -Infinity, Infinity);
+        if (score > best) { best = score; move = c; }
+      }
+      return move;
+    }
+    function scoreWindow(values) {
+      const a = values.filter(x => x === AI).length;
+      const h = values.filter(x => x === HUMAN).length;
+      const e = values.filter(x => !x).length;
+      if (a === 4) return 100000;
+      if (h === 4) return -100000;
+      if (a === 3 && e === 1) return 80;
+      if (a === 2 && e === 2) return 15;
+      if (h === 3 && e === 1) return -95;
+      if (h === 2 && e === 2) return -12;
+      return 0;
+    }
+    function evaluate(b) {
+      let score = 0;
+      for (let r = 0; r < ROWS; r++) if (b[r][3] === AI) score += 6; else if (b[r][3] === HUMAN) score -= 6;
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS - 3; c++) score += scoreWindow([b[r][c], b[r][c + 1], b[r][c + 2], b[r][c + 3]]);
+      for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS - 3; r++) score += scoreWindow([b[r][c], b[r + 1][c], b[r + 2][c], b[r + 3][c]]);
+      for (let r = 0; r < ROWS - 3; r++) for (let c = 0; c < COLS - 3; c++) score += scoreWindow([b[r][c], b[r + 1][c + 1], b[r + 2][c + 2], b[r + 3][c + 3]]);
+      for (let r = 0; r < ROWS - 3; r++) for (let c = 3; c < COLS; c++) score += scoreWindow([b[r][c], b[r + 1][c - 1], b[r + 2][c - 2], b[r + 3][c - 3]]);
+      return score;
+    }
+    function minimax(b, depth, maximizing, alpha, beta) {
+      const winner = winInfo(b);
+      if (winner) return winner.mark === AI ? 100000 + depth : winner.mark === HUMAN ? -100000 - depth : 0;
+      if (depth === 0) return evaluate(b);
+      const cols = validCols(b).sort((a, b) => Math.abs(3 - a) - Math.abs(3 - b));
+      if (maximizing) {
+        let value = -Infinity;
+        for (const c of cols) {
+          const next = clone(b);
+          drop(next, c, AI);
+          value = Math.max(value, minimax(next, depth - 1, false, alpha, beta));
+          alpha = Math.max(alpha, value);
+          if (alpha >= beta) break;
+        }
+        return value;
+      }
+      let value = Infinity;
+      for (const c of cols) {
+        const next = clone(b);
+        drop(next, c, HUMAN);
+        value = Math.min(value, minimax(next, depth - 1, true, alpha, beta));
+        beta = Math.min(beta, value);
+        if (alpha >= beta) break;
+      }
+      return value;
+    }
+
+    document.getElementById('newGame').onclick = newGame;
+    difficultyEl.onchange = newGame;
+    newGame();
+  </script>
 </body>
 </html>
