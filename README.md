@@ -64,6 +64,17 @@ Classic Minesweeper with a sharper modern UI and the usual quiet distrust.
 - **Pause:** Manual pause button plus blur-to-pause when the tab loses focus
 - **High scores:** Persistent top 3 best times per difficulty in local storage
 
+### ♠️ Solitaire
+**Path:** `games/solitaire/index.html`
+
+Draw-one Klondike Solitaire with full rules and a responsive card table.
+
+- **Classic play:** Stock/waste recycling, alternating-colour tableau builds, valid multi-card runs, and ace-to-king foundations
+- **Legal moves:** Invalid destinations are rejected with clear status feedback; empty tableau columns accept kings only
+- **Undo:** Restores stock, waste, tableau, foundations, score, moves, and elapsed time
+- **Tracking:** Classic-style score, timer, move count, and cards-home progress
+- **Controls:** Click/tap source then destination, desktop drag-and-drop, double-click auto-foundation, and keyboard shortcuts
+
 
 
 
@@ -112,6 +123,8 @@ games/
     index.html                ← Reversi
   minesweeper/
     index.html                ← Minesweeper
+  solitaire/
+    index.html                ← Klondike Solitaire
   bantumi/
     index.html                ← Bantumi
   link5/
