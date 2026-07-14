@@ -219,6 +219,21 @@
       box-shadow: inset 0 0 60px rgba(0,0,0,0.2);
       scrollbar-color: rgba(255,255,255,0.25) transparent;
     }
+    .table-shell.paused::after {
+      content: 'Paused';
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      background: rgba(3, 10, 7, 0.7);
+      backdrop-filter: blur(3px);
+      font-size: clamp(22px, 4vw, 38px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      pointer-events: auto;
+    }
 
     .table {
       width: min(100%, 850px);
@@ -439,6 +454,7 @@
         </div>
         <div class="actions" aria-label="Game actions">
           <button class="action-btn" id="undoBtn" type="button" disabled>↶ Undo</button>
+          <button class="action-btn" id="pauseBtn" type="button">⏸ Pause</button>
           <button class="action-btn primary" id="newGameBtn" type="button">New game</button>
         </div>
       </div>
@@ -489,7 +505,7 @@
         </section>
         <section class="info-card">
           <h2>Controls & scoring</h2>
-          <p>Select a source and then a destination, or drag with a mouse. Double-click an exposed card to auto-place it on a foundation. <kbd>Esc</kbd> clears a selection, <kbd>U</kbd> undoes, and <kbd>N</kbd> deals a new game. Foundation +10, waste to tableau +5, exposing a card +5, recycle −100, foundation back −15.</p>
+          <p>Select a source and then a destination, or drag with a mouse. Double-click an exposed card to auto-place it on a foundation. <kbd>Esc</kbd> clears a selection, <kbd>U</kbd> undoes, <kbd>P</kbd> pauses, and <kbd>N</kbd> deals a new game. Foundation +10, waste to tableau +5, exposing a card +5, recycle −100, foundation back −15.</p>
         </section>
       </div>
     </section>
@@ -517,6 +533,7 @@
     const homeCountEl = document.getElementById('homeCount');
     const statusEl = document.getElementById('status');
     const undoBtn = document.getElementById('undoBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
     const winBannerEl = document.getElementById('winBanner');
     const winSummaryEl = document.getElementById('winSummary');
 
@@ -525,6 +542,7 @@
     let selection = null;
     let timerId = null;
     let dragSelection = null;
+    let paused = false;
 
     function createDeck() {
       return SUITS.flatMap((suit, suitIndex) => (
@@ -610,6 +628,7 @@
       history = [];
       selection = null;
       dragSelection = null;
+      paused = false;
       setStatus('Choose a face-up card or draw from the stock.');
       render();
     }
@@ -696,7 +715,7 @@
     }
 
     function drawStock() {
-      if (state.won) return;
+      if (paused || state.won) return;
       if (state.stock.length) {
         pushHistory();
         beginAction();
@@ -726,7 +745,7 @@
 
     function flipTableauCard(columnIndex, cardIndex) {
       const column = state.tableau[columnIndex];
-      if (state.won || cardIndex !== column.length - 1 || column[cardIndex].faceUp) return;
+      if (paused || state.won || cardIndex !== column.length - 1 || column[cardIndex].faceUp) return;
       pushHistory();
       beginAction();
       column[cardIndex].faceUp = true;
@@ -738,7 +757,7 @@
     }
 
     function selectWaste() {
-      if (state.won || !state.waste.length) return;
+      if (paused || state.won || !state.waste.length) return;
       const card = state.waste[state.waste.length - 1];
       if (selection && selection.source === 'waste') {
         selection = null;
@@ -751,7 +770,7 @@
     }
 
     function selectFoundation(foundationIndex) {
-      if (state.won) return;
+      if (paused || state.won) return;
       if (selection) {
         if (moveSelectionToFoundation(foundationIndex)) return;
         if (selection.source === 'foundation' && selection.pile === foundationIndex) {
@@ -769,7 +788,7 @@
     }
 
     function selectTableauCard(columnIndex, cardIndex) {
-      if (state.won) return;
+      if (paused || state.won) return;
       const column = state.tableau[columnIndex];
       const card = column[cardIndex];
       if (!card) {
@@ -862,7 +881,7 @@
     }
 
     function autoFoundation(source, pile, cardIndex) {
-      if (state.won) return;
+      if (paused || state.won) return;
       let card;
       if (source === 'waste') {
         card = state.waste[state.waste.length - 1];
@@ -1051,7 +1070,7 @@
     function enableDrag(element, sourceSelection) {
       element.draggable = true;
       element.addEventListener('dragstart', event => {
-        if (state.won) {
+        if (paused || state.won) {
           event.preventDefault();
           return;
         }
@@ -1099,6 +1118,9 @@
       const home = state.foundations.reduce((total, pile) => total + pile.length, 0);
       homeCountEl.textContent = `${home} / 52`;
       undoBtn.disabled = history.length === 0;
+      pauseBtn.disabled = state.won;
+      pauseBtn.textContent = paused ? '▶ Resume' : '⏸ Pause';
+      document.querySelector('.table-shell').classList.toggle('paused', paused);
       winBannerEl.classList.toggle('visible', state.won);
       if (state.won) {
         winSummaryEl.textContent = `Finished in ${formatTime(state.elapsed)} with ${state.moves} moves and ${state.score} points.`;
@@ -1136,8 +1158,21 @@
     document.getElementById('newGameBtn').addEventListener('click', newGame);
     document.getElementById('winNewGameBtn').addEventListener('click', newGame);
     undoBtn.addEventListener('click', undo);
+    pauseBtn.addEventListener('click', () => {
+      if (state.won) return;
+      paused = !paused;
+      selection = null;
+      dragSelection = null;
+      setStatus(paused ? 'Game paused. The cards will wait.' : 'Game resumed.');
+      render();
+    });
 
     window.addEventListener('keydown', event => {
+      if (event.key.toLowerCase() === 'p' && !event.ctrlKey && !event.metaKey) {
+        pauseBtn.click();
+        return;
+      }
+      if (paused) return;
       if (event.key === 'Escape') {
         selection = null;
         setStatus('Selection cleared.');
@@ -1150,7 +1185,7 @@
     });
 
     timerId = window.setInterval(() => {
-      if (state && state.started && !state.won) {
+      if (state && state.started && !state.won && !paused) {
         state.elapsed += 1;
         timerEl.textContent = formatTime(state.elapsed);
       }
