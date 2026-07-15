@@ -114,6 +114,18 @@ Link5 five-in-a-row strategy game against selectable phone AI.
 - **Hard:** Immediate tactics plus bounded alpha-beta search over strongest candidate moves
 - **Controls:** Cursor + OK, arrow keys/Enter, or direct click/tap
 
+### ♟️ Chess
+**Path:** `games/chess/index.html`
+
+Full browser chess against a local Stockfish 18 WASM engine, designed to remain functional on a static GitHub Pages site.
+
+- **Rules:** Legal movement, castling, en-passant, promotion picker, check/checkmate/stalemate/draw detection, FEN and SAN move history via chess.js
+- **Stockfish:** Local single-threaded WASM worker (Easy, Medium, Hard), engine hints, and optional position analysis
+- **Clocks:** Untimed, 3-, 10-, and 15-minute games; choose White, Black, or Random
+- **Daily puzzles:** One Easy, Medium, and Hard challenge, deterministically rotated from a bundled local puzzle set by UTC day; progress persists locally
+- **Appearance:** Walnut, tournament-green, and midnight boards plus Staunton, minimal-alpha, and pixel piece styles; settings stored in localStorage
+- **Licensing:** Bundles chess.js BSD-2-Clause notice and Stockfish GPL-3.0-or-later source licence
+
 ---
 
 ## Structure
@@ -142,6 +154,10 @@ games/
     index.html                ← Bantumi
   link5/
     index.html                ← Link5
+  chess/
+    index.html                ← Chess game
+    puzzles.json              ← Rotating local daily-puzzle set
+    vendor/                   ← chess.js and Stockfish 18 WASM assets/licences
 README.md
 ```
 
