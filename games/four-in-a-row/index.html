@@ -342,7 +342,7 @@
             </div>
           </section>
           <section class="panel-section">
-            <span class="panel-heading">Session score</span>
+            <span class="panel-heading">All-time record</span>
             <div class="scoreline">
               <div class="scorebox">You<strong id="humanScore">0</strong></div>
               <div class="scorebox">AI<strong id="aiScore">0</strong></div>
@@ -366,7 +366,10 @@
     const humanScoreEl = document.getElementById('humanScore');
     const aiScoreEl = document.getElementById('aiScore');
     const drawScoreEl = document.getElementById('drawScore');
-    const scores = { R: 0, Y: 0, D: 0 };
+    const STORAGE_KEY = 'topsoul-four-in-a-row-record-v1';
+    function loadScores() { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); return { R: Number(saved.R) || 0, Y: Number(saved.Y) || 0, D: Number(saved.D) || 0 }; } catch (_) { return { R: 0, Y: 0, D: 0 }; } }
+    function saveScores() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(scores)); } catch (_) {} }
+    const scores = loadScores();
     let board, gameOver = false, thinking = false, lastPlaced = null;
 
     function newBoard() { return Array.from({ length: ROWS }, () => Array(COLS).fill('')); }
@@ -442,6 +445,7 @@
       if (!winner) { render(); return; }
       gameOver = true;
       scores[winner.mark]++;
+      saveScores();
       render(winner.cells);
       setStatus(winner.mark === HUMAN ? 'You win. Gravity approves.' : winner.mark === AI ? 'AI wins. The yellow menace prevails.' : 'Draw. Board full, dignity mostly intact.');
     }

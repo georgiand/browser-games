@@ -30,7 +30,7 @@ Classic tic tac toe against an AI opponent.
 - **Easy:** Random legal moves
 - **Medium:** Tactical wins/blocks plus centre/corner preference
 - **Hard:** Minimax optimal play
-- **Scoreboard:** Tracks wins, losses, and draws during the session
+- **Scoreboard:** Persistent wins, losses, and draws stored locally per browser
 
 ### 🔴 4 in a Row
 **Path:** `games/four-in-a-row/index.html`
@@ -41,6 +41,7 @@ Connect-four style strategy game with gravity-based disc drops.
 - **Easy:** Random legal columns
 - **Medium:** Immediate wins, blocks, and centre-column preference
 - **Hard:** Alpha-beta minimax with positional evaluation
+- **Record:** Persistent wins, losses, and draws stored locally per browser
 - **Responsive:** Playable on desktop and mobile-sized screens
 
 ### ⚫ Reversi
@@ -52,6 +53,7 @@ Reversi/Othello-style disc-flipping strategy game.
 - **Easy:** Random legal moves
 - **Medium:** Corner preference and greedy flips
 - **Hard:** Minimax with mobility, corner, and positional weighting
+- **Record:** Persistent wins, losses, and draws stored locally per browser
 - **Rules support:** Legal-move hints, passes, and end-game scoring
 
 ### 🎲 Backgammon
@@ -83,7 +85,7 @@ Draw-one Klondike Solitaire with full rules and a responsive card table.
 - **Classic play:** Stock/waste recycling, alternating-colour tableau builds, valid multi-card runs, and ace-to-king foundations
 - **Legal moves:** Invalid destinations are rejected with clear status feedback; empty tableau columns accept kings only
 - **Undo:** Restores stock, waste, tableau, foundations, score, moves, and elapsed time
-- **Tracking:** Classic-style score, timer, move count, and cards-home progress
+- **Tracking:** Classic-style score, persistent best score, timer, move count, and cards-home progress
 - **Controls:** Click/tap source then destination, desktop drag-and-drop, double-click auto-foundation, and keyboard shortcuts
 
 
@@ -101,6 +103,7 @@ Bantumi/Mancala sowing game against selectable phone AI.
 - **Medium:** Prioritises extra turns, captures, then store gain
 - **Hard:** Bounded minimax/alpha-beta over sowing outcomes
 - **Controls:** Click/tap lower cups, number keys 1–6, or selection + OK/Enter
+- **Record:** Persistent wins, draws, and losses stored locally per browser
 
 ### 🔳 Link5
 **Path:** `games/link5/index.html`
@@ -113,6 +116,7 @@ Link5 five-in-a-row strategy game against selectable phone AI.
 - **Medium:** Immediate win/block plus shape and centre scoring
 - **Hard:** Immediate tactics plus bounded alpha-beta search over strongest candidate moves
 - **Controls:** Cursor + OK, arrow keys/Enter, or direct click/tap
+- **Record:** Persistent wins, draws, and losses stored locally per browser
 
 ### ♟️ Chess
 **Path:** `games/chess/index.html`

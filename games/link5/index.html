@@ -14,6 +14,7 @@
       <div class="statusbar"><span>LINK5</span><span id="difficultyLabel">MEDIUM</span></div>
       <div class="game link5-game">
         <div class="menu-title">LINK FIVE</div>
+        <div class="scoreline" aria-label="All-time record"><span>W <b id="recordWins">0</b></span><span>D <b id="recordDraws">0</b></span><span>L <b id="recordLosses">0</b></span></div>
         <div id="board" class="link-board" aria-label="Link5 grid"></div>
         <p id="msg" class="message">Move cursor, press OK. Make five in a row.</p>
       </div>
@@ -42,6 +43,11 @@ const msg=document.getElementById('msg');
 const statusEl=document.getElementById('status');
 const difficulty=document.getElementById('difficulty');
 const difficultyLabel=document.getElementById('difficultyLabel');
+const recordEls={wins:document.getElementById('recordWins'),draws:document.getElementById('recordDraws'),losses:document.getElementById('recordLosses')};
+const STORAGE_KEY='topsoul-link5-record-v1';
+function loadRecord(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return {wins:Number(saved.wins)||0,draws:Number(saved.draws)||0,losses:Number(saved.losses)||0};}catch{return {wins:0,draws:0,losses:0};}}
+const record=loadRecord();
+function saveRecord(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(record));}catch{}}
 let grid,cursor,over,winLine=[];
 
 function reset(){
@@ -77,6 +83,7 @@ function render(){
   });
   board.appendChild(frag);
   statusEl.textContent=over?'DONE':'SELECT';
+  recordEls.wins.textContent=record.wins;recordEls.draws.textContent=record.draws;recordEls.losses.textContent=record.losses;
   difficultyLabel.textContent=difficulty.value.toUpperCase();
 }
 
@@ -200,7 +207,7 @@ function check(player){
   return null;
 }
 function full(){return grid.every(Boolean);}
-function end(text,line){over=true;winLine=line;msg.textContent=text;statusEl.textContent='DONE';render();}
+function end(text,line){over=true;winLine=line;const outcome=text.startsWith('You')?'wins':text.startsWith('Phone')?'losses':'draws';record[outcome]++;saveRecord();msg.textContent=text;statusEl.textContent='DONE';render();}
 function moveCursor(dir){
   let r=Math.floor(cursor/N),c=cursor%N;
   if(dir==='up') r=Math.max(0,r-1);

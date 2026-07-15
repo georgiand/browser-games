@@ -464,6 +464,7 @@
         <div class="stat"><span class="stat-label">Time</span><strong class="stat-value" id="timer">00:00</strong></div>
         <div class="stat"><span class="stat-label">Moves</span><strong class="stat-value" id="moves">0</strong></div>
         <div class="stat"><span class="stat-label">Cards home</span><strong class="stat-value" id="homeCount">0 / 52</strong></div>
+        <div class="stat"><span class="stat-label">Best score</span><strong class="stat-value" id="bestScore">0</strong></div>
       </div>
 
       <div class="status-bar">
@@ -528,6 +529,9 @@
     const tableauEl = document.getElementById('tableau');
     const foundationEls = Array.from(document.querySelectorAll('.foundation-slot'));
     const scoreEl = document.getElementById('score');
+    const bestScoreEl = document.getElementById('bestScore');
+    const HIGH_SCORE_KEY = 'topsoul-solitaire-best-score-v1';
+    let bestScore = Number(localStorage.getItem(HIGH_SCORE_KEY)) || 0;
     const timerEl = document.getElementById('timer');
     const movesEl = document.getElementById('moves');
     const homeCountEl = document.getElementById('homeCount');
@@ -907,6 +911,7 @@
       const home = state.foundations.reduce((total, pile) => total + pile.length, 0);
       if (home !== 52) return;
       state.won = true;
+      if (state.score > bestScore) { bestScore = state.score; try { localStorage.setItem(HIGH_SCORE_KEY, String(bestScore)); } catch (_) {} }
       selection = null;
       setStatus('You won — every suit is complete!', 'win');
     }
@@ -1113,6 +1118,7 @@
       renderFoundations();
       renderTableau();
       scoreEl.textContent = String(state.score);
+      bestScoreEl.textContent = String(bestScore);
       timerEl.textContent = formatTime(state.elapsed);
       movesEl.textContent = String(state.moves);
       const home = state.foundations.reduce((total, pile) => total + pile.length, 0);

@@ -361,6 +361,14 @@
             </div>
           </section>
           <section class="panel-section">
+            <span class="panel-heading">All-time record</span>
+            <div class="scoreline">
+              <div class="scorebox">You<strong id="humanRecord">0</strong></div>
+              <div class="scorebox">AI<strong id="aiRecord">0</strong></div>
+              <div class="scorebox">Draws<strong id="drawRecord">0</strong></div>
+            </div>
+          </section>
+          <section class="panel-section">
             <span class="panel-heading">How the AI plays</span>
             <p class="hint"><b>Easy</b> plays random legal moves. <b>Medium</b> takes corners and flips greedily. <b>Hard</b> searches ahead using mobility, corner control, and positional weights.</p>
           </section>
@@ -378,6 +386,13 @@
     const difficultyEl = document.getElementById('difficulty');
     const blackScoreEl = document.getElementById('blackScore');
     const whiteScoreEl = document.getElementById('whiteScore');
+    const humanRecordEl = document.getElementById('humanRecord');
+    const aiRecordEl = document.getElementById('aiRecord');
+    const drawRecordEl = document.getElementById('drawRecord');
+    const STORAGE_KEY = 'topsoul-reversi-record-v1';
+    function loadRecord() { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); return { B: Number(saved.B) || 0, W: Number(saved.W) || 0, D: Number(saved.D) || 0 }; } catch (_) { return { B: 0, W: 0, D: 0 }; } }
+    function saveRecord() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(record)); } catch (_) {} }
+    const record = loadRecord();
     let board, current = HUMAN, gameOver = false, thinking = false, lastChanged = [];
 
     function clone(b) { return b.map(row => row.slice()); }
@@ -455,6 +470,9 @@
       const score = counts();
       blackScoreEl.textContent = score.B;
       whiteScoreEl.textContent = score.W;
+      humanRecordEl.textContent = record.B;
+      aiRecordEl.textContent = record.W;
+      drawRecordEl.textContent = record.D;
     }
     function setStatus(text) { statusEl.textContent = text; }
     function maybeEndOrPass() {
@@ -463,6 +481,9 @@
         gameOver = true;
         render();
         const score = counts();
+        record[score.B > score.W ? HUMAN : score.W > score.B ? AI : 'D']++;
+        saveRecord();
+        render();
         setStatus(score.B > score.W ? 'You win. Corners well burgled.' : score.W > score.B ? 'AI wins. Quietly irritating.' : 'Draw. The board shrugs.');
         return true;
       }

@@ -28,7 +28,7 @@
             <div class="scorebox">AI<strong id="aiScore">0</strong></div>
           </div>
           <div class="scorebox">Draws<strong id="drawScore">0</strong></div>
-          <p class="hint"><b>Easy</b> plays randomly. <b>Medium</b> spots wins and blocks. <b>Hard</b> uses minimax, because apparently even a 3×3 grid needed a PhD.</p>
+          <p class="hint"><b>All-time record</b> is saved on this device. <b>Easy</b> plays randomly. <b>Medium</b> spots wins and blocks. <b>Hard</b> uses minimax, because apparently even a 3×3 grid needed a PhD.</p>
         </aside>
       </div>
     </section>
@@ -37,7 +37,10 @@
 const boardEl = document.getElementById('board');
 const statusEl = document.getElementById('status');
 const difficultyEl = document.getElementById('difficulty');
-const scores = {X:0,O:0,D:0};
+const STORAGE_KEY='topsoul-ttt-record-v1';
+function loadScores(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return {X:Number(saved.X)||0,O:Number(saved.O)||0,D:Number(saved.D)||0};}catch{return {X:0,O:0,D:0};}}
+function saveScores(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(scores));}catch{}}
+const scores = loadScores();
 let board, gameOver, thinking;
 const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 function newGame(){ board = Array(9).fill(''); gameOver = false; thinking = false; render(); setStatus('Your move.'); }
@@ -53,7 +56,7 @@ function render(winLine=[]){
 }
 function setStatus(t){ statusEl.textContent=t; }
 function humanMove(i){ if(board[i]||gameOver||thinking) return; board[i]='X'; afterMove(); if(!gameOver){ thinking=true; setStatus('AI thinking…'); render(); setTimeout(aiMove, 220); } }
-function afterMove(){ const w=winner(); if(!w){ render(); return; } gameOver=true; scores[w.mark]++; render(w.line); setStatus(w.mark==='X'?'You win. Neatly done.':w.mark==='O'?'AI wins. Rude, but legal.':'Draw. Civilised stalemate.'); }
+function afterMove(){ const w=winner(); if(!w){ render(); return; } gameOver=true; scores[w.mark]++; saveScores(); render(w.line); setStatus(w.mark==='X'?'You win. Neatly done.':w.mark==='O'?'AI wins. Rude, but legal.':'Draw. Civilised stalemate.'); }
 function aiMove(){ const move = chooseMove(); if(move !== undefined) board[move]='O'; thinking=false; afterMove(); if(!gameOver) setStatus('Your move.'); }
 function emptyCells(b=board){ return b.map((v,i)=>v?null:i).filter(v=>v!==null); }
 function findTactical(mark,b=board){ for(const i of emptyCells(b)){ const copy=b.slice(); copy[i]=mark; const w=winner(copy); if(w && w.mark===mark) return i; } }

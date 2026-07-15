@@ -14,6 +14,7 @@
       <div class="statusbar"><span>BANTUMI</span><span id="difficultyLabel">MEDIUM</span></div>
       <div class="game bantumi-game">
         <div class="scoreline"><span>PHONE <b id="aiScore">0</b></span><span>YOU <b id="youScore">0</b></span></div>
+        <div class="scoreline" aria-label="All-time record"><span>W <b id="recordWins">0</b></span><span>D <b id="recordDraws">0</b></span><span>L <b id="recordLosses">0</b></span></div>
         <div id="board" class="bantumi-board-fixed" aria-label="Bantumi board"></div>
         <p id="msg" class="message">Choose a lower cup.</p>
       </div>
@@ -44,6 +45,11 @@ const youScore=document.getElementById('youScore');
 const aiScore=document.getElementById('aiScore');
 const difficulty=document.getElementById('difficulty');
 const difficultyLabel=document.getElementById('difficultyLabel');
+const recordEls={wins:document.getElementById('recordWins'),draws:document.getElementById('recordDraws'),losses:document.getElementById('recordLosses')};
+const STORAGE_KEY='topsoul-bantumi-record-v1';
+function loadRecord(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return {wins:Number(saved.wins)||0,draws:Number(saved.draws)||0,losses:Number(saved.losses)||0};}catch{return {wins:0,draws:0,losses:0};}}
+const record=loadRecord();
+function saveRecord(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(record));}catch{}}
 let pits,turn,selected,locked;
 
 function reset(){
@@ -63,6 +69,7 @@ function render(){
   HUMAN_PITS.forEach((idx,i)=>board.appendChild(pitCup(idx,i+1,true)));
   youScore.textContent=pits[6];
   aiScore.textContent=pits[13];
+  recordEls.wins.textContent=record.wins;recordEls.draws.textContent=record.draws;recordEls.losses.textContent=record.losses;
   turnEl.textContent=locked?'GAME OVER':turn===HUMAN?'YOUR TURN':'PHONE';
   difficultyLabel.textContent=difficulty.value.toUpperCase();
 }
@@ -147,7 +154,9 @@ function checkFinished(){
   pits[13]+=sumSide(pits,PHONE);
   [...HUMAN_PITS,...PHONE_PITS].forEach(i=>pits[i]=0);
   locked=true;
-  msg.textContent=pits[6]>pits[13]?'You win.':pits[6]<pits[13]?'Phone wins.':'Draw.';
+  const outcome=pits[6]>pits[13]?'wins':pits[6]<pits[13]?'losses':'draws';
+  record[outcome]++;saveRecord();
+  msg.textContent=outcome==='wins'?'You win.':outcome==='losses'?'Phone wins.':'Draw.';
   render();
   return true;
 }
