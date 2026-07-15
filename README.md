@@ -120,11 +120,12 @@ Link5 five-in-a-row strategy game against selectable phone AI.
 Full browser chess against a local Stockfish 18 WASM engine, designed to remain functional on a static GitHub Pages site.
 
 - **Rules:** Legal movement, castling, en-passant, promotion picker, check/checkmate/stalemate/draw detection, FEN and SAN move history via chess.js
+- **Modes and pause:** A launch panel selects Stockfish or a daily Easy/Medium/Hard puzzle before any clock starts; visible Pause/Resume button and `P` shortcut freeze clocks and all board input
 - **Stockfish:** Local single-threaded WASM worker (Easy, Medium, Hard), engine hints, and optional position analysis
 - **Clocks:** Untimed, 3-, 10-, and 15-minute games; choose White, Black, or Random
 - **Daily puzzles:** One Easy, Medium, and Hard challenge, deterministically rotated from a bundled local puzzle set by UTC day; progress persists locally
-- **Appearance:** Walnut, tournament-green, and midnight boards plus Staunton, minimal-alpha, and pixel piece styles; settings stored in localStorage
-- **Licensing:** Bundles chess.js BSD-2-Clause notice and Stockfish GPL-3.0-or-later source licence
+- **Appearance:** Walnut, tournament-green, and midnight boards plus locally bundled Lichess Cburnett and Staunty SVG piece sets; settings stored in localStorage
+- **Licensing:** Bundles chess.js BSD-2-Clause notice, Stockfish GPL-3.0-or-later source licence, and Lichess AGPL-3.0 copying notice for the piece assets
 
 ---
 
