@@ -27,6 +27,9 @@
           <option value="hard">Hard</option>
         </select>
       </label>
+      <label>Order
+        <select id="order"><option value="first" selected>First</option><option value="second">Second</option></select>
+      </label>
       <button id="newGame">New</button>
       <button id="rules">Rules</button>
       <button id="ok">OK</button>
@@ -44,6 +47,7 @@ const turnEl=document.getElementById('turn');
 const youScore=document.getElementById('youScore');
 const aiScore=document.getElementById('aiScore');
 const difficulty=document.getElementById('difficulty');
+const order=document.getElementById('order');
 const difficultyLabel=document.getElementById('difficultyLabel');
 const recordEls={wins:document.getElementById('recordWins'),draws:document.getElementById('recordDraws'),losses:document.getElementById('recordLosses')};
 const STORAGE_KEY='topsoul-bantumi-record-v1';
@@ -54,11 +58,12 @@ let pits,turn,selected,locked;
 
 function reset(){
   pits=[4,4,4,4,4,4,0,4,4,4,4,4,4,0];
-  turn=HUMAN;
+  turn=order.value==='first'?HUMAN:PHONE;
   selected=0;
   locked=false;
-  msg.textContent='Choose a lower cup.';
+  msg.textContent=turn===HUMAN?'Choose a lower cup.':'Phone opens.';
   render();
+  if(turn===PHONE) setTimeout(phoneMove,360);
 }
 
 function render(){
@@ -231,6 +236,7 @@ document.getElementById('newGame').onclick=reset;
 document.getElementById('rules').onclick=()=>msg.textContent='Sow anti-clockwise. Your store is right. Empty lower cup captures opposite stones.';
 document.getElementById('ok').onclick=()=>humanMove(selected);
 difficulty.onchange=()=>{difficultyLabel.textContent=difficulty.value.toUpperCase();msg.textContent='Difficulty set to '+difficulty.value+'.';};
+order.onchange=reset;
 document.addEventListener('keydown',e=>{
   if(e.key>='1'&&e.key<='6'){e.preventDefault();selected=Number(e.key)-1;humanMove(selected);}
   if(e.key==='ArrowLeft'){e.preventDefault();moveSelection(-1);}

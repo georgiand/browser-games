@@ -9,7 +9,7 @@
 </head>
 <body>
   <main class="shell">
-    <div class="topbar"><a class="back" href="../../index.html">← Games</a><span class="pill">You are X · AI is O</span></div>
+    <div class="topbar"><a class="back" href="../../index.html">← Games</a><span class="pill" id="rolePill">You are X · AI is O</span></div>
     <section class="card">
       <div class="layout">
         <div>
@@ -21,11 +21,12 @@
           <div class="status" id="status">Choose a move.</div>
           <div class="row">
             <label>AI difficulty <select id="difficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select></label>
+            <label>Play order <select id="order"><option value="first" selected>Play first · X</option><option value="second">Play second · O</option></select></label>
             <button class="primary" id="newGame">New game</button>
           </div>
           <div class="scoreline">
-            <div class="scorebox">You<strong id="humanScore">0</strong></div>
-            <div class="scorebox">AI<strong id="aiScore">0</strong></div>
+            <div class="scorebox" id="humanLabel">You<strong id="humanScore">0</strong></div>
+            <div class="scorebox" id="aiLabel">AI<strong id="aiScore">0</strong></div>
           </div>
           <div class="scorebox">Draws<strong id="drawScore">0</strong></div>
           <p class="hint"><b>All-time record</b> is saved on this device. <b>Easy</b> plays randomly. <b>Medium</b> spots wins and blocks. <b>Hard</b> uses minimax, because apparently even a 3×3 grid needed a PhD.</p>
@@ -37,13 +38,14 @@
 const boardEl = document.getElementById('board');
 const statusEl = document.getElementById('status');
 const difficultyEl = document.getElementById('difficulty');
+const orderEl = document.getElementById('order');
 const STORAGE_KEY='topsoul-ttt-record-v1';
 function loadScores(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return {X:Number(saved.X)||0,O:Number(saved.O)||0,D:Number(saved.D)||0};}catch{return {X:0,O:0,D:0};}}
 function saveScores(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(scores));}catch{}}
 const scores = loadScores();
-let board, gameOver, thinking;
+let board, gameOver, thinking, HUMAN='X', AI='O';
 const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-function newGame(){ board = Array(9).fill(''); gameOver = false; thinking = false; render(); setStatus('Your move.'); }
+function newGame(){ HUMAN=orderEl.value==='first'?'X':'O'; AI=HUMAN==='X'?'O':'X'; board = Array(9).fill(''); gameOver = false; thinking = false; document.getElementById('rolePill').textContent=`You are ${HUMAN} · AI is ${AI}`; document.getElementById('humanLabel').firstChild.textContent=`You · ${HUMAN}`; document.getElementById('aiLabel').firstChild.textContent=`AI · ${AI}`; render(); if(HUMAN==='X') setStatus('Your move.'); else { thinking=true; setStatus('AI opens…'); render(); setTimeout(aiMove,220); } }
 function winner(b=board){
   for(const line of wins){ const [a,c,d]=line; if(b[a] && b[a]===b[c] && b[a]===b[d]) return {mark:b[a], line}; }
   if(b.every(Boolean)) return {mark:'D', line:[]};
@@ -52,18 +54,18 @@ function winner(b=board){
 function render(winLine=[]){
   boardEl.innerHTML='';
   board.forEach((v,i)=>{ const cell=document.createElement('button'); cell.className='cell playable'+(winLine.includes(i)?' win':''); cell.textContent=v; cell.setAttribute('aria-label', `Cell ${i+1} ${v||'empty'}`); cell.disabled=!!v||gameOver||thinking; cell.onclick=()=>humanMove(i); boardEl.appendChild(cell); });
-  document.getElementById('humanScore').textContent=scores.X; document.getElementById('aiScore').textContent=scores.O; document.getElementById('drawScore').textContent=scores.D;
+  document.getElementById('humanScore').textContent=scores[HUMAN]; document.getElementById('aiScore').textContent=scores[AI]; document.getElementById('drawScore').textContent=scores.D;
 }
 function setStatus(t){ statusEl.textContent=t; }
-function humanMove(i){ if(board[i]||gameOver||thinking) return; board[i]='X'; afterMove(); if(!gameOver){ thinking=true; setStatus('AI thinking…'); render(); setTimeout(aiMove, 220); } }
-function afterMove(){ const w=winner(); if(!w){ render(); return; } gameOver=true; scores[w.mark]++; saveScores(); render(w.line); setStatus(w.mark==='X'?'You win. Neatly done.':w.mark==='O'?'AI wins. Rude, but legal.':'Draw. Civilised stalemate.'); }
-function aiMove(){ const move = chooseMove(); if(move !== undefined) board[move]='O'; thinking=false; afterMove(); if(!gameOver) setStatus('Your move.'); }
+function humanMove(i){ if(board[i]||gameOver||thinking) return; board[i]=HUMAN; afterMove(); if(!gameOver){ thinking=true; setStatus('AI thinking…'); render(); setTimeout(aiMove, 220); } }
+function afterMove(){ const w=winner(); if(!w){ render(); return; } gameOver=true; scores[w.mark]++; saveScores(); render(w.line); setStatus(w.mark===HUMAN?'You win. Neatly done.':w.mark===AI?'AI wins. Rude, but legal.':'Draw. Civilised stalemate.'); }
+function aiMove(){ const move = chooseMove(); if(move !== undefined) board[move]=AI; thinking=false; afterMove(); if(!gameOver) setStatus('Your move.'); }
 function emptyCells(b=board){ return b.map((v,i)=>v?null:i).filter(v=>v!==null); }
 function findTactical(mark,b=board){ for(const i of emptyCells(b)){ const copy=b.slice(); copy[i]=mark; const w=winner(copy); if(w && w.mark===mark) return i; } }
-function chooseMove(){ const d=difficultyEl.value; const cells=emptyCells(); if(d==='easy') return cells[Math.floor(Math.random()*cells.length)]; const win=findTactical('O'); if(win!==undefined) return win; const block=findTactical('X'); if(block!==undefined) return block; if(d==='medium'){ if(!board[4]) return 4; const corners=[0,2,6,8].filter(i=>!board[i]); return (corners[0] ?? cells[Math.floor(Math.random()*cells.length)]); } return bestMove(); }
-function bestMove(){ let best=-Infinity, move; for(const i of emptyCells()){ const b=board.slice(); b[i]='O'; const score=minimax(b,false); if(score>best){ best=score; move=i; } } return move; }
-function minimax(b, isMax){ const w=winner(b); if(w) return w.mark==='O'?10:w.mark==='X'?-10:0; if(isMax){ let best=-Infinity; for(const i of emptyCells(b)){ const n=b.slice(); n[i]='O'; best=Math.max(best,minimax(n,false)); } return best; } let best=Infinity; for(const i of emptyCells(b)){ const n=b.slice(); n[i]='X'; best=Math.min(best,minimax(n,true)); } return best; }
-document.getElementById('newGame').onclick=newGame; difficultyEl.onchange=newGame; newGame();
+function chooseMove(){ const d=difficultyEl.value; const cells=emptyCells(); if(d==='easy') return cells[Math.floor(Math.random()*cells.length)]; const win=findTactical(AI); if(win!==undefined) return win; const block=findTactical(HUMAN); if(block!==undefined) return block; if(d==='medium'){ if(!board[4]) return 4; const corners=[0,2,6,8].filter(i=>!board[i]); return (corners[0] ?? cells[Math.floor(Math.random()*cells.length)]); } return bestMove(); }
+function bestMove(){ let best=-Infinity, move; for(const i of emptyCells()){ const b=board.slice(); b[i]=AI; const score=minimax(b,false); if(score>best){ best=score; move=i; } } return move; }
+function minimax(b, isMax){ const w=winner(b); if(w) return w.mark===AI?10:w.mark===HUMAN?-10:0; if(isMax){ let best=-Infinity; for(const i of emptyCells(b)){ const n=b.slice(); n[i]=AI; best=Math.max(best,minimax(n,false)); } return best; } let best=Infinity; for(const i of emptyCells(b)){ const n=b.slice(); n[i]=HUMAN; best=Math.min(best,minimax(n,true)); } return best; }
+document.getElementById('newGame').onclick=newGame; difficultyEl.onchange=newGame; orderEl.onchange=newGame; newGame();
 </script>
 </body>
 </html>

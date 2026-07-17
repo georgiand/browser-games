@@ -27,6 +27,7 @@ A fully-featured Snake game built with HTML5 Canvas and Vanilla JavaScript.
 Classic tic tac toe against an AI opponent.
 
 - **AI difficulty:** Easy, Medium, Hard
+- **Play order:** Choose to take X and open, or take O and let the AI open
 - **Easy:** Random legal moves
 - **Medium:** Tactical wins/blocks plus centre/corner preference
 - **Hard:** Minimax optimal play
@@ -38,6 +39,7 @@ Classic tic tac toe against an AI opponent.
 Connect-four style strategy game with gravity-based disc drops.
 
 - **AI difficulty:** Easy, Medium, Hard
+- **Play order:** Choose red to open or yellow to play second
 - **Easy:** Random legal columns
 - **Medium:** Immediate wins, blocks, and centre-column preference
 - **Hard:** Alpha-beta minimax with positional evaluation
@@ -50,6 +52,7 @@ Connect-four style strategy game with gravity-based disc drops.
 Reversi/Othello-style disc-flipping strategy game.
 
 - **AI difficulty:** Easy, Medium, Hard
+- **Play order:** Choose black to open or white to play second
 - **Easy:** Random legal moves
 - **Medium:** Corner preference and greedy flips
 - **Hard:** Minimax with mobility, corner, and positional weighting
@@ -99,6 +102,7 @@ Bantumi/Mancala sowing game against selectable phone AI.
 
 - **Rules:** Extra turns from landing in your store, empty-pit captures, end-game sweeping
 - **AI difficulty:** Easy, Medium, Hard
+- **Play order:** Start the sowing or let the phone make the opening move
 - **Easy:** Random legal cups
 - **Medium:** Prioritises extra turns, captures, then store gain
 - **Hard:** Bounded minimax/alpha-beta over sowing outcomes
@@ -112,6 +116,7 @@ Link5 five-in-a-row strategy game against selectable phone AI.
 
 - **Goal:** Link five marks horizontally, vertically, or diagonally
 - **AI difficulty:** Easy, Medium, Hard
+- **Play order:** Place first or let the phone open
 - **Easy:** Random legal moves
 - **Medium:** Immediate win/block plus shape and centre scoring
 - **Hard:** Immediate tactics plus bounded alpha-beta search over strongest candidate moves

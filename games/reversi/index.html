@@ -325,7 +325,7 @@
   <main class="shell">
     <div class="topbar">
       <a class="back" href="../../index.html">← Games</a>
-      <span class="pill"><span class="legend-disc" aria-hidden="true"></span>You are black <span class="legend-disc white" aria-hidden="true"></span>AI is white</span>
+      <span class="pill" id="rolePill"><span class="legend-disc" aria-hidden="true"></span>You are black <span class="legend-disc white" aria-hidden="true"></span>AI is white</span>
     </div>
 
     <section class="card">
@@ -350,14 +350,17 @@
               <label>AI difficulty
                 <select id="difficulty"><option value="easy">Easy · random</option><option value="medium" selected>Medium · tactical</option><option value="hard">Hard · search</option></select>
               </label>
+              <label>Play order
+                <select id="order"><option value="first" selected>Play first · black</option><option value="second">Play second · white</option></select>
+              </label>
               <button class="primary" id="newGameBtn" type="button">New game</button>
             </div>
           </section>
           <section class="panel-section">
             <span class="panel-heading">Disc count</span>
             <div class="scoreline">
-              <div class="scorebox">Black · You<strong id="blackScore">2</strong></div>
-              <div class="scorebox">White · AI<strong id="whiteScore">2</strong></div>
+              <div class="scorebox" id="blackLabel">Black · You<strong id="blackScore">2</strong></div>
+              <div class="scorebox" id="whiteLabel">White · AI<strong id="whiteScore">2</strong></div>
             </div>
           </section>
           <section class="panel-section">
@@ -378,12 +381,13 @@
   </main>
 
   <script>
-    const SIZE = 8, HUMAN = 'B', AI = 'W', EMPTY = '';
+    const SIZE = 8, EMPTY = '' ;
     const directions = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
     const weights = [[120,-25,20,5,5,20,-25,120],[-25,-45,-5,-5,-5,-5,-45,-25],[20,-5,15,3,3,15,-5,20],[5,-5,3,3,3,3,-5,5],[5,-5,3,3,3,3,-5,5],[20,-5,15,3,3,15,-5,20],[-25,-45,-5,-5,-5,-5,-45,-25],[120,-25,20,5,5,20,-25,120]];
     const boardEl = document.getElementById('board');
     const statusEl = document.getElementById('status');
     const difficultyEl = document.getElementById('difficulty');
+    const orderEl = document.getElementById('order');
     const blackScoreEl = document.getElementById('blackScore');
     const whiteScoreEl = document.getElementById('whiteScore');
     const humanRecordEl = document.getElementById('humanRecord');
@@ -393,21 +397,27 @@
     function loadRecord() { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); return { B: Number(saved.B) || 0, W: Number(saved.W) || 0, D: Number(saved.D) || 0 }; } catch (_) { return { B: 0, W: 0, D: 0 }; } }
     function saveRecord() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(record)); } catch (_) {} }
     const record = loadRecord();
-    let board, current = HUMAN, gameOver = false, thinking = false, lastChanged = [];
+    let board, current = 'B', gameOver = false, thinking = false, lastChanged = [], HUMAN = 'B', AI = 'W';
 
     function clone(b) { return b.map(row => row.slice()); }
     function init() {
+      HUMAN = orderEl.value === 'first' ? 'B' : 'W';
+      AI = HUMAN === 'B' ? 'W' : 'B';
       board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
       board[3][3] = AI;
       board[3][4] = HUMAN;
       board[4][3] = HUMAN;
       board[4][4] = AI;
-      current = HUMAN;
+      current = 'B';
       gameOver = false;
       thinking = false;
       lastChanged = [];
+      document.getElementById('rolePill').innerHTML = HUMAN === 'B' ? '<span class="legend-disc" aria-hidden="true"></span>You are black <span class="legend-disc white" aria-hidden="true"></span>AI is white' : '<span class="legend-disc white" aria-hidden="true"></span>You are white <span class="legend-disc" aria-hidden="true"></span>AI is black';
+      document.getElementById('blackLabel').firstChild.textContent = HUMAN === 'B' ? 'Black · You' : 'Black · AI';
+      document.getElementById('whiteLabel').firstChild.textContent = HUMAN === 'W' ? 'White · You' : 'White · AI';
       render();
-      setStatus('Your move.');
+      if (current === HUMAN) setStatus('Your move.');
+      else { thinking = true; setStatus('AI opens…'); render(); setTimeout(aiMove, 350); }
     }
     function inBounds(r, c) { return r >= 0 && r < SIZE && c >= 0 && c < SIZE; }
     function opponent(mark) { return mark === HUMAN ? AI : HUMAN; }
@@ -438,13 +448,13 @@
     function counts(b = board) {
       let B = 0, W = 0;
       for (const row of b) for (const value of row) {
-        if (value === HUMAN) B++;
-        if (value === AI) W++;
+        if (value === 'B') B++;
+        if (value === 'W') W++;
       }
       return { B, W };
     }
     function render() {
-      const legal = gameOver || thinking ? [] : legalMoves(board, HUMAN).map(move => move.r * SIZE + move.c);
+      const legal = gameOver || thinking || current !== HUMAN ? [] : legalMoves(board, HUMAN).map(move => move.r * SIZE + move.c);
       const changed = new Set(lastChanged.map(([r, c]) => `${r}:${c}`));
       boardEl.innerHTML = '';
       for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
@@ -497,13 +507,14 @@
       return false;
     }
     function humanMove(r, c) {
-      if (gameOver || thinking) return;
+      if (gameOver || thinking || current !== HUMAN) return;
       const move = legalMoves(board, HUMAN).find(candidate => candidate.r === r && candidate.c === c);
       if (!move) return;
       board = applyMove(board, move, HUMAN);
       lastChanged = [[move.r, move.c], ...move.flips];
       render();
       if (maybeEndOrPass()) return;
+      current = AI;
       thinking = true;
       setStatus('AI thinking…');
       render();
@@ -513,6 +524,7 @@
       const moves = legalMoves(board, AI);
       if (!moves.length) {
         thinking = false;
+        current = HUMAN;
         render();
         if (!maybeEndOrPass()) setStatus('AI passes. Your move.');
         return;
@@ -521,6 +533,7 @@
       board = applyMove(board, move, AI);
       lastChanged = [[move.r, move.c], ...move.flips];
       thinking = false;
+      current = HUMAN;
       render();
       if (!maybeEndOrPass()) setStatus('Your move.');
     }
@@ -542,7 +555,7 @@
     }
     function evaluate(b) {
       const score = counts(b);
-      let value = (score.W - score.B) * 4;
+      let value = (score[AI] - score[HUMAN]) * 4;
       for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
         if (b[r][c] === AI) value += weights[r][c];
         else if (b[r][c] === HUMAN) value -= weights[r][c];
@@ -575,6 +588,7 @@
 
     document.getElementById('newGameBtn').onclick = init;
     difficultyEl.onchange = init;
+    orderEl.onchange = init;
     init();
   </script>
 </body>

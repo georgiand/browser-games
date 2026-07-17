@@ -27,6 +27,9 @@
           <option value="hard">Hard</option>
         </select>
       </label>
+      <label>Order
+        <select id="order"><option value="first" selected>First</option><option value="second">Second</option></select>
+      </label>
       <button id="newGame">New</button>
       <button id="hint">Hint</button>
       <button id="ok">OK</button>
@@ -42,6 +45,7 @@ const board=document.getElementById('board');
 const msg=document.getElementById('msg');
 const statusEl=document.getElementById('status');
 const difficulty=document.getElementById('difficulty');
+const order=document.getElementById('order');
 const difficultyLabel=document.getElementById('difficultyLabel');
 const recordEls={wins:document.getElementById('recordWins'),draws:document.getElementById('recordDraws'),losses:document.getElementById('recordLosses')};
 const STORAGE_KEY='topsoul-link5-record-v1';
@@ -55,8 +59,9 @@ function reset(){
   cursor=40;
   over=false;
   winLine=[];
-  msg.textContent='Move cursor, press OK. Make five in a row.';
+  msg.textContent=order.value==='first'?'Move cursor, press OK. Make five in a row.':'Phone opens.';
   render();
+  if(order.value==='second') setTimeout(()=>{aiMove();render();},220);
 }
 
 function render(){
@@ -222,6 +227,7 @@ document.getElementById('newGame').onclick=reset;
 document.getElementById('hint').onclick=()=>msg.textContent='Easy: random. Medium: win/block + shape score. Hard: limited alpha-beta search.';
 document.getElementById('ok').onclick=place;
 difficulty.onchange=()=>{difficultyLabel.textContent=difficulty.value.toUpperCase();msg.textContent='Difficulty set to '+difficulty.value+'.';};
+order.onchange=reset;
 document.addEventListener('keydown',e=>{
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();moveCursor(e.key.replace('Arrow','').toLowerCase());}
   if(e.key==='Enter'||e.key===' '){e.preventDefault();place();}

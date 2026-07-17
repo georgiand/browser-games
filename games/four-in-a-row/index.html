@@ -313,7 +313,7 @@
   <main class="shell">
     <div class="topbar">
       <a class="back" href="../../index.html">← Games</a>
-      <span class="pill"><span class="legend-disc" aria-hidden="true"></span>You are red <span class="legend-disc yellow" aria-hidden="true"></span>AI is yellow</span>
+      <span class="pill" id="rolePill"><span class="legend-disc" aria-hidden="true"></span>You are red <span class="legend-disc yellow" aria-hidden="true"></span>AI is yellow</span>
     </div>
 
     <section class="card">
@@ -338,6 +338,9 @@
               <label>AI difficulty
                 <select id="difficulty"><option value="easy">Easy · random</option><option value="medium" selected>Medium · tactical</option><option value="hard">Hard · search</option></select>
               </label>
+              <label>Play order
+                <select id="order"><option value="first" selected>Play first · red</option><option value="second">Play second · yellow</option></select>
+              </label>
               <button class="primary" id="newGame" type="button">New game</button>
             </div>
           </section>
@@ -359,10 +362,11 @@
   </main>
 
   <script>
-    const ROWS = 6, COLS = 7, HUMAN = 'R', AI = 'Y';
+    const ROWS = 6, COLS = 7;
     const boardEl = document.getElementById('board');
     const statusEl = document.getElementById('status');
     const difficultyEl = document.getElementById('difficulty');
+    const orderEl = document.getElementById('order');
     const humanScoreEl = document.getElementById('humanScore');
     const aiScoreEl = document.getElementById('aiScore');
     const drawScoreEl = document.getElementById('drawScore');
@@ -370,16 +374,20 @@
     function loadScores() { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); return { R: Number(saved.R) || 0, Y: Number(saved.Y) || 0, D: Number(saved.D) || 0 }; } catch (_) { return { R: 0, Y: 0, D: 0 }; } }
     function saveScores() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(scores)); } catch (_) {} }
     const scores = loadScores();
-    let board, gameOver = false, thinking = false, lastPlaced = null;
+    let board, gameOver = false, thinking = false, lastPlaced = null, HUMAN = 'R', AI = 'Y';
 
     function newBoard() { return Array.from({ length: ROWS }, () => Array(COLS).fill('')); }
     function newGame() {
+      HUMAN = orderEl.value === 'first' ? 'R' : 'Y';
+      AI = HUMAN === 'R' ? 'Y' : 'R';
       board = newBoard();
       gameOver = false;
       thinking = false;
       lastPlaced = null;
       render();
-      setStatus('Your move. Click a column.');
+      document.getElementById('rolePill').innerHTML = HUMAN === 'R' ? '<span class="legend-disc" aria-hidden="true"></span>You are red <span class="legend-disc yellow" aria-hidden="true"></span>AI is yellow' : '<span class="legend-disc yellow" aria-hidden="true"></span>You are yellow <span class="legend-disc" aria-hidden="true"></span>AI is red';
+      if (HUMAN === 'R') setStatus('Your move. Click a column.');
+      else { thinking = true; setStatus('AI opens…'); render(); setTimeout(aiMove, 180); }
     }
     function setStatus(text) { statusEl.textContent = text; }
     function validCols(b = board) { return [...Array(COLS).keys()].filter(c => !b[0][c]); }
@@ -424,8 +432,8 @@
         boardEl.appendChild(cell);
       }
       lastPlaced = null;
-      humanScoreEl.textContent = scores.R;
-      aiScoreEl.textContent = scores.Y;
+      humanScoreEl.textContent = scores[HUMAN];
+      aiScoreEl.textContent = scores[AI];
       drawScoreEl.textContent = scores.D;
     }
     function humanMove(c) {
@@ -535,6 +543,7 @@
 
     document.getElementById('newGame').onclick = newGame;
     difficultyEl.onchange = newGame;
+    orderEl.onchange = newGame;
     newGame();
   </script>
 </body>
