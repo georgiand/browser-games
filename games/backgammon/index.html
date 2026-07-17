@@ -264,8 +264,8 @@
         <div class="play-column">
           <div class="status-bar">
             <div>
-              <div class="status" id="status" aria-live="polite">Roll the opening dice. Ties re-roll; the higher die starts.</div>
-              <div class="turn-label" id="turnLabel">Opening roll</div>
+              <div class="status" id="status" aria-live="polite">Choose who opens, then roll.</div>
+              <div class="turn-label" id="turnLabel">Ready to start</div>
             </div>
             <div class="dice" id="dice" aria-label="Dice"></div>
           </div>
@@ -283,6 +283,12 @@
                 <option value="easy">Easy · random</option>
                 <option value="medium" selected>Medium · tactical</option>
                 <option value="hard">Hard · search</option>
+              </select>
+            </label>
+            <label class="difficulty-label">Play order
+              <select id="startOrder">
+                <option value="first" selected>You play first</option>
+                <option value="second">AI plays first</option>
               </select>
             </label>
             <p class="ai-note" id="aiNote">Tactical AI values hits, made points, safer checkers, and bearing off.</p>
@@ -352,6 +358,7 @@
     const rollBtn = document.getElementById('rollBtn');
     const undoBtn = document.getElementById('undoBtn');
     const difficultyEl = document.getElementById('difficulty');
+    const startOrderEl = document.getElementById('startOrder');
     const moveLogEl = document.getElementById('moveLog');
     const aiNoteEl = document.getElementById('aiNote');
 
@@ -609,8 +616,8 @@
     function newGame() {
       clearTimers();
       state = initialState();
-      current = null;
-      phase = 'opening';
+      current = startOrderEl.value === 'first' ? HUMAN : AI;
+      phase = current === HUMAN ? 'await-roll' : 'thinking';
       turnDice = [];
       diceRemaining = [];
       usedDice = [];
@@ -618,8 +625,9 @@
       selectedSource = null;
       undoStack = [];
       moveLog = [];
-      setStatus('Roll the opening dice. Ties re-roll; the higher die starts.');
+      setStatus(current === HUMAN ? 'You play first. Roll the dice.' : 'AI plays first. Rolling dice…');
       render();
+      if (current === AI) later(aiRoll, 500);
     }
 
     function rollAction() {
@@ -1039,6 +1047,7 @@
       };
       aiNoteEl.textContent = notes[difficultyEl.value];
     });
+    startOrderEl.addEventListener('change', newGame);
     document.addEventListener('keydown', event => {
       if (event.target.matches('select, input, textarea')) return;
       if (event.key.toLowerCase() === 'r' && !rollBtn.disabled) rollAction();

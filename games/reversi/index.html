@@ -465,12 +465,12 @@
         cell.className = `cell${(r + c) % 2 ? ' shade' : ''}${isLegal ? ' playable' : ''}`;
         cell.disabled = !isLegal;
         cell.setAttribute('aria-label', mark
-          ? `Row ${r + 1}, column ${c + 1}: ${mark === HUMAN ? 'black' : 'white'} disc`
+          ? `Row ${r + 1}, column ${c + 1}: ${mark === 'B' ? 'black' : 'white'} disc`
           : `Row ${r + 1}, column ${c + 1}${isLegal ? ': legal move' : ': empty'}`);
         cell.onclick = () => humanMove(r, c);
         if (mark) {
           const disc = document.createElement('span');
-          disc.className = `disc ${mark === HUMAN ? 'disc-black' : 'disc-white'}${changed.has(`${r}:${c}`) ? ' changed' : ''}`;
+          disc.className = `disc ${mark === 'B' ? 'disc-black' : 'disc-white'}${changed.has(`${r}:${c}`) ? ' changed' : ''}`;
           disc.setAttribute('aria-hidden', 'true');
           cell.appendChild(disc);
         }

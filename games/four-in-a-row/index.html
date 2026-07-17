@@ -420,12 +420,12 @@
         cell.className = `cell playable${winCells.includes(r * COLS + c) ? ' win' : ''}`;
         cell.disabled = gameOver || thinking || !!board[0][c];
         cell.setAttribute('aria-label', mark
-          ? `Row ${r + 1}, column ${c + 1}: ${mark === HUMAN ? 'red' : 'yellow'} disc`
+          ? `Row ${r + 1}, column ${c + 1}: ${mark === 'R' ? 'red' : 'yellow'} disc`
           : `Row ${r + 1}, column ${c + 1}${cell.disabled ? ': unavailable' : ': drop a disc'}`);
         cell.onclick = () => humanMove(c);
         if (mark) {
           const disc = document.createElement('span');
-          disc.className = `disc ${mark === HUMAN ? 'disc-red' : 'disc-yellow'}${isPlaced ? ' placed' : ''}`;
+          disc.className = `disc ${mark === 'R' ? 'disc-red' : 'disc-yellow'}${isPlaced ? ' placed' : ''}`;
           disc.setAttribute('aria-hidden', 'true');
           cell.appendChild(disc);
         }

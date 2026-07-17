@@ -64,7 +64,8 @@ Reversi/Othello-style disc-flipping strategy game.
 
 Complete single-player Backgammon against a browser AI, with a responsive board and rule-aware move guidance.
 
-- **Complete turn rules:** Opening roll with tie re-rolls, doubles as four moves, maximum-dice use, and the higher-die rule
+- **Complete turn rules:** Doubles as four moves, maximum-dice use, and the higher-die rule when only one die can be played
+- **Play order:** Choose whether you or the AI takes the opening turn
 - **Checker rules:** Bar-entry priority, blocked points, hits to the bar, bearing off, and legal oversize bear-offs
 - **AI difficulty:** Easy picks a random complete legal turn; Medium scores hits, made points, safety, and bearing off; Hard searches bounded opponent replies across representative rolls
 - **Scoring:** Persistent session wins and points, including normal, gammon, and backgammon results
