@@ -90,7 +90,7 @@ Heads-up no-limit Texas Hold’em with an optional beginner tutorial and three m
 - **Legal wagering:** Check, call, minimum raises, folds, short all-in calls/raises, matched-stack wager caps, and uncalled-chip refunds
 - **Correct evaluator:** Best five of seven cards, including wheel straights, kickers, board-play ties, and every standard hand category
 - **Three tables:** Friendly 5/10 against a loose Rookie, Club 10/20 against a hand- and pot-aware Regular, and High Roller 25/50 against a Monte Carlo equity-estimating Shark
-- **Tutorial mode:** Explains every phase and currently legal choice in plain language; enabled by default and independently hideable
+- **Tutorial mode:** Plain-language phase/choice help plus the strategy coach, bundled behind a persistent per-browser Help & strategy toggle (on by default)
 - **Strategy coach:** Reads your hole cards, board, pot odds, stack pressure, draws, and betting situation; includes a hand-type guide in the help section
 - **Accessible controls:** Semantic buttons, live status announcements, card labels, visible focus, keyboard shortcuts, and a responsive mobile table
 
