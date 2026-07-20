@@ -81,6 +81,18 @@ Six-deck Blackjack with bankroll, betting, Hit/Stand/Double, selectable soft-17 
 
 Full human-vs-AI Cribbage: discard to the crib, pegging, hand/crib counting, a 121-point board, and Easy/Medium/Hard AI.
 
+### ♦️ Texas Hold’em
+**Path:** `games/texas-holdem/index.html`
+
+Heads-up no-limit Texas Hold’em with an optional beginner tutorial and three meaningfully different tables.
+
+- **Complete hand flow:** Alternating dealer button, heads-up small/big blinds, pre-flop/flop/turn/river betting, burn cards, showdown, and split pots
+- **Legal wagering:** Check, call, minimum raises, folds, short all-in calls/raises, matched-stack wager caps, and uncalled-chip refunds
+- **Correct evaluator:** Best five of seven cards, including wheel straights, kickers, board-play ties, and every standard hand category
+- **Three tables:** Friendly 5/10 against a loose Rookie, Club 10/20 against a hand- and pot-aware Regular, and High Roller 25/50 against a Monte Carlo equity-estimating Shark
+- **Tutorial mode:** Explains every phase and currently legal choice in plain language; enabled by default and independently hideable
+- **Accessible controls:** Semantic buttons, live status announcements, card labels, visible focus, keyboard shortcuts, and a responsive mobile table
+
 ### 🔴 Checkers
 **Path:** `games/checkers/index.html`
 
@@ -198,6 +210,8 @@ games/
     index.html                ← Minesweeper
   solitaire/
     index.html                ← Klondike Solitaire
+  texas-holdem/
+    index.html                ← Texas Hold’em
   bantumi/
     index.html                ← Bantumi
   link5/
