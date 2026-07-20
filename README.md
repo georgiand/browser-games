@@ -71,6 +71,17 @@ Complete single-player Backgammon against a browser AI, with a responsive board 
 - **Scoring:** Persistent session wins and points, including normal, gammon, and backgammon results
 - **Controls:** Click/tap source then highlighted destination, keyboard roll/undo/new-game shortcuts, and per-turn undo
 
+### 🔴 Checkers
+**Path:** `games/checkers/index.html`
+
+Single-player American checkers/draughts with a warm wood-and-felt presentation matching Backgammon.
+
+- **Rules:** Mandatory captures, chained jumps, promotion to kings, and win detection when no opposing pieces or legal moves remain
+- **Play order:** Choose to open as Red or play Cream after the AI's opening move
+- **AI difficulty:** Easy plays a random legal turn; Medium values captures, kings, promotion, and material; Hard uses bounded minimax search
+- **Record:** Persistent wins and losses stored locally per browser
+- **Controls:** Click/tap pieces and highlighted destinations; undo the previous player turn; `U` undo and `N` new game shortcuts
+
 ### 💣 Minesweeper
 **Path:** `games/minesweeper/index.html`
 
@@ -157,6 +168,8 @@ games/
     index.html                ← Reversi
   backgammon/
     index.html                ← Backgammon
+  checkers/
+    index.html                ← Checkers
   minesweeper/
     index.html                ← Minesweeper
   solitaire/
