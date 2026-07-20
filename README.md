@@ -71,6 +71,16 @@ Complete single-player Backgammon against a browser AI, with a responsive board 
 - **Scoring:** Persistent session wins and points, including normal, gammon, and backgammon results
 - **Controls:** Click/tap source then highlighted destination, keyboard roll/undo/new-game shortcuts, and per-turn undo
 
+### 🃏 Blackjack
+**Path:** `games/blackjack/index.html`
+
+Six-deck Blackjack with bankroll, betting, Hit/Stand/Double, selectable soft-17 dealer behaviour, 3:2 blackjacks, and local records.
+
+### 🪵 Cribbage
+**Path:** `games/cribbage/index.html`
+
+Full human-vs-AI Cribbage: discard to the crib, pegging, hand/crib counting, a 121-point board, and Easy/Medium/Hard AI.
+
 ### 🔴 Checkers
 **Path:** `games/checkers/index.html`
 
