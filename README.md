@@ -82,6 +82,18 @@ Single-player American checkers/draughts with a warm wood-and-felt presentation 
 - **Record:** Persistent wins and losses stored locally per browser
 - **Controls:** Click/tap pieces and highlighted destinations; undo the previous player turn; `U` undo and `N` new game shortcuts
 
+### 🟠 Nine Men's Morris
+**Path:** `games/nine-mens-morris/index.html`
+
+Classic Nine Men's Morris on a warm wood-and-felt tabletop, against a selectable browser opponent.
+
+- **Complete phases:** Place nine stones, slide along connected lines, then fly when reduced to three stones
+- **Mills & captures:** Form a row of three to remove an opposing stone; stones outside mills are removed first when possible
+- **Play order:** Choose Red to open or Cream to play after the AI's opening placement
+- **AI difficulty:** Easy chooses random legal turns; Medium forms/blocks mills and values captures and mobility; Hard runs bounded minimax search
+- **Record:** Persistent wins and losses stored locally per browser
+- **Controls:** Click/tap source and gold destination; choose a highlighted enemy stone after making a mill; undo and `U` / `N` shortcuts
+
 ### 💣 Minesweeper
 **Path:** `games/minesweeper/index.html`
 
@@ -170,6 +182,8 @@ games/
     index.html                ← Backgammon
   checkers/
     index.html                ← Checkers
+  nine-mens-morris/
+    index.html                ← Nine Men's Morris
   minesweeper/
     index.html                ← Minesweeper
   solitaire/
